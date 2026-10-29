@@ -327,6 +327,40 @@ header .btn { flex-shrink: 0; }
 .logo.brand { position:relative; display:inline-flex; align-items:center; overflow:visible; padding-left:12px; isolation:isolate; }
 .logo.brand span { position:relative; z-index:1; }
 .logo-heart { position:absolute; left:0; top:50%; width:34px; height:31px; transform:translateY(-54%) rotate(-10deg); fill:#99f6e4; opacity:.55; z-index:0; pointer-events:none; }
+
+/* ---------- Restored V1 features ---------- */
+.more-btn { flex-shrink:0; width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center; color:var(--muted); border-radius:50%; -webkit-tap-highlight-color:transparent; }
+.chat-actions .more-btn { color:var(--muted); width:34px; }
+.sheet h3 { font-size:18px; text-align:center; margin:4px 0 2px; }
+.sheet .sub { text-align:center; color:var(--muted); font-size:14px; margin-bottom:6px; }
+.sheet .grab { width:40px; height:5px; border-radius:999px; background:#e2e8f0; margin:0 auto 10px; }
+.reason { display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid #f1f5f9; font-size:16px; cursor:pointer; }
+.reason input { width:20px; height:20px; accent-color:var(--accent); flex-shrink:0; }
+.sheet .reasons { max-height:46vh; overflow-y:auto; }
+.btn.ghost-danger { background:#fef2f2; color:var(--danger); }
+.event-meta .who { background:none; border:none; padding:0; font:inherit; color:var(--accent-dark); font-weight:700; cursor:pointer; }
+.person { display:flex; gap:12px; align-items:center; }
+.person .av { width:52px; height:52px; border-radius:50%; background:#e2e8f0 center/cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:20px; }
+.you-tag { display:inline-block; margin-left:6px; background:var(--accent-soft); color:var(--accent-dark); font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; vertical-align:middle; }
+.filter-row { display:flex; gap:8px; }
+.filter-row select { flex:1; min-width:0; padding:16px 6px 16px 12px; font-size:15px; }
+#chatSober { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chat-strip { position:absolute; top:calc(76px + env(safe-area-inset-top)); left:0; right:0; z-index:9; display:none; gap:14px; overflow-x:auto; padding:8px 16px 8px; background:rgba(248,250,252,.96); backdrop-filter:blur(12px); border-bottom:1px solid rgba(0,0,0,.05); scrollbar-width:none; }
+.chat-strip::-webkit-scrollbar { display:none; }
+#chat.has-strip .chat-strip { display:flex; }
+#chat.has-strip #chatMessages { padding-top:calc(92px + 78px + env(safe-area-inset-top)); }
+.strip-item { flex-shrink:0; width:54px; text-align:center; cursor:pointer; background:none; border:none; padding:0; font:inherit; color:var(--text); -webkit-tap-highlight-color:transparent; }
+.strip-item .av { width:48px; height:48px; margin:0 auto; border-radius:50%; background:#e2e8f0 center/cover; border:2px solid #fff; box-shadow:0 0 0 2px #cbd5e1; }
+.strip-item.on .av { box-shadow:0 0 0 2.5px var(--accent); }
+.strip-item .nm { font-size:11px; font-weight:600; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.strip-item.on .nm { color:var(--accent-dark); }
+.viewer .v-nav { position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,.18); color:#fff; font-size:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.viewer .v-prev { left:10px; } .viewer .v-next { right:10px; }
+.viewer .v-count { position:absolute; bottom:calc(28px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); color:#fff; font-size:13px; font-weight:700; background:rgba(255,255,255,.16); padding:5px 12px; border-radius:999px; }
+.viewer .v-dots { display:none; }
+.viewer:not(.multi) .v-nav, .viewer:not(.multi) .v-count { display:none; }
+#profileCard { cursor:pointer; }
+.perm-ic { width:64px; height:64px; border-radius:20px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; font-size:30px; margin:4px auto 10px; }
 </style>
 </head>
 <body>
@@ -524,8 +558,10 @@ header .btn { flex-shrink: 0; }
       <div class="chat-actions">
         <button class="icon-btn" id="voiceCallBtn" onclick="startCall('voice')" title="Voice call" aria-label="Voice call"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
         <button class="icon-btn" id="videoCallBtn" onclick="startCall('video')" title="Video call" aria-label="Video call"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></button>
+        <button class="icon-btn more-btn" id="chatMoreBtn" onclick="openMatchMenu(activeChat)" title="More" aria-label="More options"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
       </div>
     </header>
+    <div class="chat-strip" id="chatStrip" aria-label="Your matches"></div>
     <div class="content" id="chatMessages"></div>
     <div class="composer">
       <div class="icebreakers" id="icebreakers">
@@ -536,7 +572,7 @@ header .btn { flex-shrink: 0; }
       <div class="emoji-picker" id="emojiPicker" role="listbox" aria-label="Emoji"></div>
       <div class="composer-row">
         <button class="tool-btn" id="emojiBtn" onmousedown="event.preventDefault()" onclick="toggleEmoji()" title="Emoji" aria-label="Emoji"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
-        <button class="tool-btn" id="photoBtn" onclick="document.getElementById('chatPhotoInput').click()" title="Send a photo" aria-label="Send a photo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+        <button class="tool-btn" id="photoBtn" onclick="requirePhotoAccess(() => document.getElementById('chatPhotoInput').click())" title="Send a photo" aria-label="Send a photo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
         <input class="input" id="chatInput" placeholder="Message..." style="margin:0; flex:1; padding:12px 14px;" enterkeyhint="send" autocomplete="off">
         <button class="btn send-btn" onclick="sendMessage()">Send</button>
       </div>
@@ -605,7 +641,13 @@ header .btn { flex-shrink: 0; }
       </div>
       <div class="card">
         <h3>Monthly — $9.99</h3>
+        <p class="muted">Cancel anytime</p>
         <button class="btn secondary" onclick="toast('Purchases are disabled in the prototype')">Get Monthly</button>
+      </div>
+      <div class="card">
+        <h3>Weekly — $3.99</h3>
+        <p class="muted">Flexible short-term</p>
+        <button class="btn secondary" onclick="toast('Purchases are disabled in the prototype')">Get Weekly</button>
       </div>
       <button class="btn secondary" onclick="resetDemo()">Reset demo data</button>
     </div>
@@ -632,6 +674,10 @@ header .btn { flex-shrink: 0; }
       </div>
       <select class="input" id="filterGender"><option value="">Any gender</option><option>Male</option><option>Female</option><option>Trans</option><option>Non-binary</option></select>
       <select class="input" id="filterProgram"><option value="">Any program</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>None</option><option>Other</option></select>
+      <div class="filter-row">
+        <select class="input" id="filterKids" aria-label="Kids"><option value="">Kids: any</option><option value="No kids">No kids</option><option value="Has kids">Has kids</option><option value="Wants kids">Wants kids</option></select>
+        <select class="input" id="filterSmoker" aria-label="Smoking"><option value="">Smoking: any</option><option>Non-smoker</option><option>Occasionally</option><option>Smoker</option></select>
+      </div>
       <button class="btn" onclick="applyFilters()">Apply</button>
       <button class="btn secondary" onclick="resetFilters()">Reset</button>
     </div>
@@ -650,6 +696,12 @@ header .btn { flex-shrink: 0; }
   </div>
 
   <!-- Create Event -->
+  <!-- Event attendees -->
+  <div id="eventAttendees" class="screen">
+    <header><button class="icon-btn" onclick="showScreen('events')">←</button><div class="logo" id="attendeesTitle">Who's going</div><div style="width:38px;"></div></header>
+    <div class="content" id="attendeesList"></div>
+  </div>
+
   <div id="createEvent" class="screen">
     <header><button class="icon-btn" onclick="showScreen('events')">←</button><div class="logo">New Event</div><div style="width:38px;"></div></header>
     <div class="content">
@@ -692,10 +744,17 @@ header .btn { flex-shrink: 0; }
       <button class="call-end" id="endCallBtn" onclick="endCall()" aria-label="End call"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .4-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85a1 1 0 0 1-1.4-.02L.29 13.08a1 1 0 0 1 0-1.41C3.34 8.77 7.46 7 12 7s8.66 1.77 11.71 4.67a1 1 0 0 1 0 1.41l-2.48 2.48a1 1 0 0 1-1.4.02 11.3 11.3 0 0 0-2.67-1.85 1 1 0 0 1-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg></button>
     </div>
   </div>
+  <!-- Generic action sheet (match menu, report reasons, photo permission) -->
+  <div class="sheet-bg" id="actionSheet" onclick="if(event.target===this) closeActionSheet()">
+    <div class="sheet" id="actionSheetBody"></div>
+  </div>
   <!-- Full-screen photo viewer -->
-  <div class="viewer" id="photoViewer" onclick="closeViewer()">
-    <button class="icon-btn" aria-label="Close">✕</button>
+  <div class="viewer" id="photoViewer" onclick="if(event.target===this) closeViewer()">
+    <button class="icon-btn" aria-label="Close" onclick="closeViewer()">✕</button>
     <img id="viewerImg" alt="">
+    <button class="v-nav v-prev" aria-label="Previous photo" onclick="viewerStep(-1)">‹</button>
+    <button class="v-nav v-next" aria-label="Next photo" onclick="viewerStep(1)">›</button>
+    <div class="v-count" id="viewerCount">1 / 1</div>
   </div>
   <div class="toast" id="toast"></div>
 </div>
@@ -721,7 +780,7 @@ const DEFAULT_EVENTS = [
   { id: 'e1', title: 'Morning Hike + Coffee', date: 'This Saturday', location: 'Local trails', desc: 'Low-pressure group hike followed by coffee.', emoji: '🥾', gradient: 'linear-gradient(135deg,#10b981,#34d399)', interested: 4, going: false },
   { id: 'e2', title: 'Board Game Night', date: 'Next Friday', location: 'Downtown café', desc: 'Alcohol-free social. Bring a game or just yourself.', emoji: '🎲', gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)', interested: 3, going: false }
 ];
-const DEFAULT_FILTERS = { distance: 25, ageMin: 18, ageMax: 99, gender: '', program: '' };
+const DEFAULT_FILTERS = { distance: 25, ageMin: 18, ageMax: 99, gender: '', program: '', kids: '', smoker: '' };
 
 let state = {
   user: null,
@@ -770,7 +829,7 @@ const NAV_ICON_CARDS = `<svg width="28" height="28" viewBox="0 0 28 28" fill="no
   <rect x="4" y="5" width="13" height="17" rx="2.5" transform="rotate(-12 10.5 13.5)"/>
   <rect x="11" y="5" width="13" height="17" rx="2.5" transform="rotate(8 17.5 13.5)"/>
 </svg>`;
-const TAB_FOR_SCREEN = { discover: 'discover', matches: 'matches', chat: 'matches', events: 'events', profile: 'profile' };
+const TAB_FOR_SCREEN = { discover: 'discover', matches: 'matches', chat: 'matches', events: 'events', eventAttendees: 'events', profile: 'profile' };
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -809,6 +868,7 @@ function loadState() {
   const seen = new Set();
   state.matches = state.matches.filter(m => m && m.name && !seen.has(m.name) && seen.add(m.name));
   state.chats = state.chats && typeof state.chats === 'object' ? state.chats : {};
+  state.removed = Array.isArray(state.removed) ? state.removed : [];
   state.filters = { ...DEFAULT_FILTERS, ...(state.filters || {}) };
   if (!Array.isArray(state.events) || !state.events.length) state.events = JSON.parse(JSON.stringify(DEFAULT_EVENTS));
   state.events.forEach((e, i) => { if (!e.id) e.id = 'e' + Date.now() + i; if (typeof e.going !== 'boolean') e.going = false; });
@@ -876,9 +936,30 @@ function renderPhotoGrid(which) {
 }
 function pickPhoto(which, index) {
   photoTarget = { which, index };
-  const input = document.getElementById('photoInput');
-  input.value = '';
-  input.click();
+  requirePhotoAccess(() => {
+    const input = document.getElementById('photoInput');
+    input.value = '';
+    input.click();
+  });
+}
+// V1-style permission prompt before opening the photo library (remembered once allowed)
+let photoAccessCb = null;
+function requirePhotoAccess(cb) {
+  if (state.photoAccess) return cb();
+  photoAccessCb = cb;
+  openActionSheet(`<div class="grab"></div><div class="perm-ic">🖼️</div>
+    <h3>Allow access to your photos?</h3>
+    <p class="sub">Clean Date uses your photo library only to add pictures you choose.</p>
+    <button class="btn" id="permAllow" onclick="photoAccessAnswer(true)">Allow access</button>
+    <button class="btn secondary" id="permDeny" onclick="photoAccessAnswer(false)">Not now</button>`);
+}
+function photoAccessAnswer(ok) {
+  closeActionSheet();
+  const cb = photoAccessCb; photoAccessCb = null;
+  if (!ok) { toast('Photo access is needed to add pictures'); return; }
+  state.photoAccess = true;
+  saveState();
+  if (cb) cb();
 }
 function resizeImage(file, max = 600, quality = 0.8) {
   return new Promise((resolve, reject) => {
@@ -1061,9 +1142,18 @@ function programMatches(p, f) {
   if (f === 'None') return /^None/.test(p);
   return p === f;
 }
+function kidsMatches(k, f) {
+  if (!f) return true;
+  k = k || '';
+  if (f === 'No kids') return /^No kids/i.test(k);
+  if (f === 'Wants kids') return /wants/i.test(k);
+  if (f === 'Has kids') return /\bkids?\b/i.test(k) && !/^No kids/i.test(k) && !/wants/i.test(k);
+  return k === f;
+}
 function filteredProfiles() {
   const f = state.filters;
-  return profiles.filter(p => p.age >= (f.ageMin || 18) && p.age <= (f.ageMax || 99) && (!f.gender || p.gender === f.gender) && programMatches(p.program, f.program));
+  const hidden = new Set(state.removed || []);
+  return profiles.filter(p => !hidden.has(p.name) && p.age >= (f.ageMin || 18) && p.age <= (f.ageMax || 99) && (!f.gender || p.gender === f.gender) && programMatches(p.program, f.program) && kidsMatches(p.kids, f.kids) && (!f.smoker || p.smoker === f.smoker));
 }
 function currentProfile() {
   const list = filteredProfiles();
@@ -1084,9 +1174,11 @@ function loadProfile() {
   document.getElementById('looking').textContent = p.looking.join(', ');
   const gallery = document.getElementById('photoGallery');
   card.style.backgroundImage = p.photos && p.photos.length ? cssUrl(p.photos[0]) : 'linear-gradient(135deg,#0d9488,#5eead4)';
+  cardPhotoIdx = 0;
   gallery.innerHTML = (p.photos || []).map((url, i) => `<img src="${esc(url)}" class="${i === 0 ? 'sel' : ''}" onclick="setMainPhoto(${i})" alt="">`).join('');
   resetCard();
 }
+let cardPhotoIdx = 0;
 function resetCard() {
   const card = document.getElementById('profileCard');
   card.style.transition = 'none';
@@ -1099,6 +1191,7 @@ function resetCard() {
 function setMainPhoto(i) {
   const p = currentProfile();
   if (!p) return;
+  cardPhotoIdx = i;
   document.getElementById('profileCard').style.backgroundImage = cssUrl(p.photos[i]);
   document.querySelectorAll('#photoGallery img').forEach((img, j) => img.classList.toggle('sel', j === i));
 }
@@ -1182,6 +1275,11 @@ function onEnd() {
     card.querySelector('.swipe-hint.nope').style.opacity = '0';
   }
 }
+card.addEventListener('click', e => {
+  if (moved || swipeLocked || e.target.closest('button')) return;
+  const p = currentProfile();
+  if (p && p.photos && p.photos.length) openViewer(p.photos[cardPhotoIdx] || p.photos[0], p.photos, cardPhotoIdx);
+});
 card.addEventListener('mousedown', onStart);
 card.addEventListener('touchstart', onStart, { passive: true });
 window.addEventListener('mousemove', onMove);
@@ -1216,6 +1314,7 @@ function renderMatches() {
     return `<div class="card" style="display:flex; gap:12px; align-items:center; cursor:pointer;" onclick="openChat(${i})">
       <div style="width:56px; height:56px; border-radius:50%; background:${esc(cssUrl(m.photo))} center/cover; flex-shrink:0;"></div>
       <div style="min-width:0; flex:1;"><strong>${esc(m.name)}</strong><div class="muted" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(preview)}</div></div>
+      <button class="icon-btn more-btn" aria-label="More options for ${esc(m.name)}" onclick="event.stopPropagation(); openMatchMenu(${i})"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
     </div>`;
   }).join('') || `<div class="empty"><div class="em">💬</div><h3>No conversations yet</h3><p>When you match with someone, your chat will show up here.</p><button class="btn" onclick="showScreen('discover')">Start Swiping</button></div>`;
 }
@@ -1227,6 +1326,7 @@ function openChat(i) {
   document.getElementById('chatName').textContent = m.name;
   document.getElementById('chatSober').textContent = m.sober;
   document.getElementById('chatAvatar').style.backgroundImage = cssUrl(m.photo);
+  renderChatStrip();
   chatFor(m.name);
   saveState();
   toggleEmoji(false);
@@ -1342,8 +1442,41 @@ async function sendChatPhoto(input) {
     if (document.getElementById('chat').classList.contains('active') && state.matches[activeChat] && state.matches[activeChat].name === name) renderChat();
   }, 1400);
 }
-function openViewer(src) { document.getElementById('viewerImg').src = src; document.getElementById('photoViewer').classList.add('show'); }
+const viewer = { list: [], idx: 0 };
+function openViewer(src, list, idx) {
+  viewer.list = Array.isArray(list) && list.length ? list : [src];
+  viewer.idx = Array.isArray(list) ? Math.max(0, Math.min(idx || 0, list.length - 1)) : 0;
+  const v = document.getElementById('photoViewer');
+  v.classList.toggle('multi', viewer.list.length > 1);
+  showViewerImg();
+  v.classList.add('show');
+}
+function showViewerImg() {
+  document.getElementById('viewerImg').src = viewer.list[viewer.idx];
+  document.getElementById('viewerCount').textContent = (viewer.idx + 1) + ' / ' + viewer.list.length;
+}
+function viewerStep(d) {
+  if (viewer.list.length < 2) return;
+  viewer.idx = (viewer.idx + d + viewer.list.length) % viewer.list.length;
+  showViewerImg();
+}
 function closeViewer() { document.getElementById('photoViewer').classList.remove('show'); document.getElementById('viewerImg').removeAttribute('src'); }
+(() => {
+  const v = document.getElementById('photoViewer');
+  let sx = null, sy = 0;
+  v.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  v.addEventListener('touchend', e => {
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    sx = null;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) viewerStep(dx < 0 ? 1 : -1);
+  });
+  document.addEventListener('keydown', e => {
+    if (!v.classList.contains('show')) return;
+    if (e.key === 'ArrowRight') viewerStep(1);
+    if (e.key === 'ArrowLeft') viewerStep(-1);
+  });
+})();
 
 /* ---------- Voice / video calls (mock) ---------- */
 const call = { active: false, kind: null, id: 0, stream: null, timer: null, connectT: null, started: 0, mute: false, cam: true, spk: false, name: '' };
@@ -1451,6 +1584,101 @@ document.addEventListener('keydown', e => {
   else toggleEmoji(false);
 });
 
+
+/* ---------- Action sheet, unmatch / report ---------- */
+function openActionSheet(html) {
+  document.getElementById('actionSheetBody').innerHTML = html;
+  document.getElementById('actionSheet').classList.add('show');
+}
+function closeActionSheet() { document.getElementById('actionSheet').classList.remove('show'); }
+let menuMatch = null;
+function openMatchMenu(i) {
+  const m = state.matches[i];
+  if (!m) return;
+  menuMatch = m.name;
+  openActionSheet(`<div class="grab"></div><h3>${esc(m.name)}</h3><p class="sub">${esc(m.sober || '')}</p>
+    <button class="btn secondary" id="menuUnmatch" onclick="confirmUnmatch()">Unmatch</button>
+    <button class="btn ghost-danger" id="menuReport" onclick="openReport()">Report ${esc(m.name)}</button>
+    <button class="btn secondary" onclick="closeActionSheet()">Cancel</button>`);
+}
+function confirmUnmatch() {
+  const n = esc(menuMatch);
+  openActionSheet(`<div class="grab"></div><h3>Unmatch ${n}?</h3><p class="sub">You won’t see each other again and your chat will be deleted.</p>
+    <button class="btn danger" id="confirmUnmatchBtn" onclick="doUnmatch(false)">Unmatch</button>
+    <button class="btn secondary" onclick="closeActionSheet()">Cancel</button>`);
+}
+const REPORT_REASONS = ['Fake profile or scam', 'Inappropriate messages or photos', 'Harassment or threats', 'Pressuring me to drink or use', 'Seems underage', 'Something else'];
+function openReport() {
+  openActionSheet(`<div class="grab"></div><h3>Report ${esc(menuMatch)}</h3><p class="sub">Your report is private. ${esc(menuMatch)} won’t know it was you.</p>
+    <div class="reasons">${REPORT_REASONS.map((r, i) => `<label class="reason"><input type="radio" name="reportReason" value="${esc(r)}" ${i === 0 ? '' : ''} onchange="document.getElementById('reportSubmit').disabled=false"> ${esc(r)}</label>`).join('')}</div>
+    <button class="btn danger" id="reportSubmit" disabled onclick="confirmReport()">Continue</button>
+    <button class="btn secondary" onclick="closeActionSheet()">Cancel</button>`);
+}
+let reportReason = '';
+function confirmReport() {
+  const r = document.querySelector('input[name=reportReason]:checked');
+  if (!r) return toast('Pick a reason');
+  reportReason = r.value;
+  openActionSheet(`<div class="grab"></div><h3>Report and unmatch?</h3><p class="sub">Reason: ${esc(reportReason)}.<br>We’ll review ${esc(menuMatch)}’s profile and you’ll be unmatched.</p>
+    <button class="btn danger" id="confirmReportBtn" onclick="doUnmatch(true)">Report &amp; unmatch</button>
+    <button class="btn secondary" onclick="openReport()">Back</button>`);
+}
+function doUnmatch(reported) {
+  const name = menuMatch;
+  closeActionSheet();
+  const idx = state.matches.findIndex(m => m.name === name);
+  if (idx === -1) return;
+  const wasOpen = document.getElementById('chat').classList.contains('active') && state.matches[activeChat] && state.matches[activeChat].name === name;
+  state.matches.splice(idx, 1);
+  delete state.chats[name];
+  if (!state.removed.includes(name)) state.removed.push(name);
+  if (reported) { state.reports = state.reports || []; state.reports.push({ name, reason: reportReason, at: Date.now() }); }
+  if (activeChat === idx) activeChat = -1; else if (activeChat > idx) activeChat--;
+  saveState();
+  if (wasOpen) showScreen('matches'); else if (document.getElementById('matches').classList.contains('active')) renderMatches();
+  else if (document.getElementById('chat').classList.contains('active')) renderChatStrip();
+  toast(reported ? `Thanks. ${name} was reported and unmatched` : `Unmatched with ${name}`);
+}
+
+/* ---------- Chat: match strip ---------- */
+function renderChatStrip() {
+  const strip = document.getElementById('chatStrip');
+  const chatEl = document.getElementById('chat');
+  const show = state.matches.length > 1;
+  chatEl.classList.toggle('has-strip', show);
+  if (!show) { strip.innerHTML = ''; return; }
+  strip.innerHTML = state.matches.map((m, i) => ({ m, i })).reverse().map(({ m, i }) =>
+    `<button class="strip-item ${i === activeChat ? 'on' : ''}" onclick="${i === activeChat ? '' : `openChat(${i})`}" aria-label="Chat with ${esc(m.name)}">
+      <div class="av" style="background-image:${esc(cssUrl(m.photo))}"></div><div class="nm">${esc(m.name)}</div></button>`).join('');
+  const on = strip.querySelector('.on');
+  if (on) strip.scrollLeft = Math.max(0, on.offsetLeft - 16);
+}
+
+/* ---------- Events: who's going ---------- */
+function showEventAttendees(i) {
+  const e = state.events[i];
+  if (!e) return;
+  document.getElementById('attendeesTitle').textContent = e.title;
+  const others = Math.max(0, e.interested - (e.going ? 1 : 0));
+  // deterministic sample of people per event
+  const seed = String(e.id || e.title).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const pool = profiles.filter(p => !(state.removed || []).includes(p.name));
+  const shown = [];
+  for (let k = 0; k < Math.min(others, pool.length); k++) shown.push(pool[(seed + k * 5) % pool.length]);
+  const uniq = [...new Set(shown)];
+  const extra = others - uniq.length;
+  const u = state.user;
+  const me = e.going ? `<div class="card person"><div class="av" style="${u && u.photos && u.photos[0] ? 'background-image:' + esc(cssUrl(u.photos[0])) : 'background:var(--accent)'}">${u && u.photos && u.photos[0] ? '' : esc(((u && u.name) || 'Y')[0].toUpperCase())}</div>
+      <div><strong>${esc((u && u.name) || 'You')}</strong><span class="you-tag">YOU</span><div class="muted">${esc((u && u.sober) || 'Going')}</div></div></div>` : '';
+  const list = uniq.map(p => `<div class="card person"><div class="av" style="background-image:${esc(cssUrl(p.photos[0]))}"></div>
+      <div style="min-width:0;"><strong>${esc(p.name)}, ${p.age}</strong><div class="muted">${esc(p.sober)} · ${esc(p.location)}</div></div></div>`).join('');
+  const body = (me || list) ? me + list + (extra > 0 ? `<p class="muted" style="text-align:center; margin-top:4px;">+ ${extra} more interested</p>` : '')
+    : `<div class="empty"><div class="em">👥</div><h3>No one yet</h3><p>Be the first to say you’re interested.</p></div>`;
+  document.getElementById('attendeesList').innerHTML = `<p class="muted" style="margin-bottom:12px;">${e.interested} ${e.interested === 1 ? 'person' : 'people'} interested · ${esc(e.date)} · ${esc(e.location)}</p>` + body +
+    `<button class="btn ${e.going ? 'going' : ''}" id="attendRsvp" onclick="rsvp(${i}); showEventAttendees(${i});">${e.going ? '✓ You’re going' : 'I’m interested'}</button>`;
+  showScreen('eventAttendees');
+}
+
 /* ---------- Events ---------- */
 function renderEvents() {
   const list = document.getElementById('eventsList');
@@ -1465,7 +1693,7 @@ function renderEvents() {
         <p class="muted">${esc(e.desc)}</p>
         <div class="event-meta">
           <span>📍 ${esc(e.location)}</span>
-          <span>👥 ${e.interested} interested</span>
+          <button class="who" onclick="showEventAttendees(${i})">👥 ${e.interested} interested · See who's going ›</button>
         </div>
         <button class="btn ${e.going ? 'going' : 'secondary'}" style="margin-top:12px;" onclick="rsvp(${i})">${e.going ? '✓ You’re going' : 'I’m interested'}</button>
       </div>
@@ -1520,12 +1748,14 @@ function openFilters() {
   document.getElementById('filterAgeMax').value = f.ageMax;
   document.getElementById('filterGender').value = f.gender;
   document.getElementById('filterProgram').value = f.program;
+  document.getElementById('filterKids').value = f.kids || '';
+  document.getElementById('filterSmoker').value = f.smoker || '';
   showScreen('filters');
 }
 function applyFilters() {
   let min = parseInt(val('filterAgeMin'), 10) || 18, max = parseInt(val('filterAgeMax'), 10) || 99;
   if (min > max) [min, max] = [max, min];
-  state.filters = { distance: parseInt(val('filterDistance'), 10) || 25, ageMin: Math.max(18, min), ageMax: max, gender: val('filterGender'), program: val('filterProgram') };
+  state.filters = { distance: parseInt(val('filterDistance'), 10) || 25, ageMin: Math.max(18, min), ageMax: max, gender: val('filterGender'), program: val('filterProgram'), kids: val('filterKids'), smoker: val('filterSmoker') };
   state.current = 0;
   saveState();
   const n = filteredProfiles().length;
