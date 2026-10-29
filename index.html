@@ -361,18 +361,24 @@ header .btn { flex-shrink: 0; }
 .viewer:not(.multi) .v-nav, .viewer:not(.multi) .v-count { display:none; }
 #profileCard { cursor:pointer; }
 .perm-ic { width:64px; height:64px; border-radius:20px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; font-size:30px; margin:4px auto 10px; }
+.onb-mosaic { position:absolute; left:0; right:0; top:0; height:68%; overflow:hidden; pointer-events:none; z-index:1; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:calc(112px + env(safe-area-inset-top)) 14px 0; }
+.onb-mosaic .col { display:flex; flex-direction:column; gap:10px; }
+.onb-mosaic .col:nth-child(2) { margin-top:-24px; }
+.onb-mosaic .col:nth-child(3) { margin-top:22px; }
+.onb-mosaic .tile { width:100%; aspect-ratio:3/4; border-radius:18px; background:#e2e8f0 center/cover no-repeat; box-shadow:0 6px 18px rgba(15,23,42,.12); flex-shrink:0; }
+.onb-mosaic::after { content:''; position:absolute; left:0; right:0; bottom:0; height:55%; background:linear-gradient(rgba(248,250,252,0), var(--bg) 85%); }
 </style>
 </head>
 <body>
 <div class="phone">
   <!-- Onboarding -->
   <div id="onboarding" class="screen active">
-    <div id="floatingPhotos" style="position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:1;"></div>
+    <div id="floatingPhotos" class="onb-mosaic" aria-hidden="true"></div>
     <header style="z-index:5; background:transparent; border:none; backdrop-filter:none;">
       <div class="logo brand" aria-label="Clean Date"><svg class="logo-heart" viewBox="0 0 32 29" aria-hidden="true" focusable="false"><path d="M16 28.2 13.7 26C5.6 18.7.3 13.9.3 8.1.3 3.4 4 .3 8.6.3c2.8 0 5.5 1.3 7.4 3.4C17.9 1.6 20.6.3 23.4.3 28 .3 31.7 3.4 31.7 8.1c0 5.8-5.3 10.6-13.4 17.9L16 28.2z"/></svg><span>Clean Date</span></div>
     </header>
-    <div class="content" style="display:flex; flex-direction:column; justify-content:center; padding:80px 20px 40px; position:relative; z-index:2;">
-      <div style="background:rgba(255,255,255,0.94); backdrop-filter:blur(12px); border-radius:24px; padding:28px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+    <div class="content" style="display:flex; flex-direction:column; justify-content:flex-end; padding:80px 20px calc(28px + env(safe-area-inset-bottom)); position:relative; z-index:2;">
+      <div style="background:#fff; border-radius:24px; padding:28px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
         <h1 style="font-size:26px; font-weight:800; margin-bottom:8px;">Dating without the hangover</h1>
         <p class="muted" style="margin-bottom:20px;">A space for sober and sober-curious people to connect honestly.</p>
         <button class="btn" onclick="startSignup()">Get Started</button>
@@ -1792,21 +1798,24 @@ function resetDemo() {
 function createFloatingPhotos() {
   const container = document.getElementById('floatingPhotos');
   if (!container) return;
-  const urls = [
-    'https://randomuser.me/api/portraits/women/44.jpg',
-    'https://randomuser.me/api/portraits/men/32.jpg',
-    'https://randomuser.me/api/portraits/women/68.jpg',
-    'https://randomuser.me/api/portraits/men/75.jpg',
-    'https://randomuser.me/api/portraits/women/22.jpg'
-  ];
-  urls.forEach(url => {
-    const img = document.createElement('img');
-    img.src = url;
-    img.alt = '';
-    const s = 60 + Math.random() * 40;
-    img.style.cssText = `position:absolute; width:${s}px; height:${s}px; border-radius:50%; object-fit:cover; border:3px solid white; box-shadow:0 4px 12px rgba(0,0,0,0.15); left:${Math.random() * 80}%; top:${Math.random() * 70}%; opacity:0.7; transform:rotate(${Math.random() * 16 - 8}deg);`;
-    container.appendChild(img);
-  });
+  // A tidy 3-column photo mosaic built from the sample profiles' main photos.
+  const seen = new Set();
+  const urls = [0, 1, 2].flatMap(i => profiles.map(p => p.photos && p.photos[i]))
+    .filter(u => u && !seen.has(u) && seen.add(u))
+    .map(u => u.replace('w=800&h=1000', 'w=300&h=400'));
+  container.innerHTML = '';
+  for (let c = 0; c < 3; c++) {
+    const col = document.createElement('div');
+    col.className = 'col';
+    for (let r = 0; r < 3; r++) {
+      const url = urls[(c + r * 3) % urls.length];
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.style.backgroundImage = `url("${url}")`;
+      col.appendChild(tile);
+    }
+    container.appendChild(col);
+  }
 }
 
 // Init
