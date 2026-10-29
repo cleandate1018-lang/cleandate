@@ -127,8 +127,13 @@ footer a { font-weight:700; }
       <input class="input" id="wlEmail" name="email" type="email" autocomplete="email" inputmode="email" required maxlength="120">
       <div class="err" id="errEmail">Please enter a valid email address.</div>
       <label class="f" for="wlCity">City</label>
-      <input class="input" id="wlCity" name="city" autocomplete="address-level2" placeholder="e.g. Austin, TX" required maxlength="80">
+      <input class="input" id="wlCity" name="city" autocomplete="address-level2" placeholder="e.g. Austin" required maxlength="80">
       <div class="err" id="errCity">Please tell us your city.</div>
+      <label class="f" for="wlState">State</label>
+      <select class="input" id="wlState" name="state" autocomplete="address-level1" required>
+        <option value="">Select your state</option><option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option><option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option><option>District of Columbia</option><option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option><option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option><option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option><option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option><option>Missouri</option><option>Montana</option><option>Nebraska</option><option>Nevada</option><option>New Hampshire</option><option>New Jersey</option><option>New Mexico</option><option>New York</option><option>North Carolina</option><option>North Dakota</option><option>Ohio</option><option>Oklahoma</option><option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option><option>South Carolina</option><option>South Dakota</option><option>Tennessee</option><option>Texas</option><option>Utah</option><option>Vermont</option><option>Virginia</option><option>Washington</option><option>West Virginia</option><option>Wisconsin</option><option>Wyoming</option><option>Outside the US</option>
+      </select>
+      <div class="err" id="errState">Please choose your state.</div>
       <label class="f" for="wlSober">How long sober? <span class="opt">(optional)</span></label>
       <select class="input" id="wlSober" name="sober">
         <option value="">Prefer not to say</option><option>Sober curious</option><option>Under 6 months</option><option>6 months – 1 year</option><option>1–2 years</option><option>2–5 years</option><option>5+ years</option>
@@ -170,13 +175,14 @@ footer a { font-weight:700; }
   var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   function setErr(input, errEl, bad) { input.classList.toggle('bad', bad); errEl.classList.toggle('show', bad); input.setAttribute('aria-invalid', bad ? 'true' : 'false'); }
   function validate() {
-    var e = $('wlEmail'), c = $('wlCity');
-    var badE = !emailRe.test(e.value.trim()), badC = !c.value.trim();
-    setErr(e, $('errEmail'), badE); setErr(c, $('errCity'), badC);
-    if (badE) e.focus(); else if (badC) c.focus();
-    return !badE && !badC;
+    var e = $('wlEmail'), c = $('wlCity'), st = $('wlState');
+    var badE = !emailRe.test(e.value.trim()), badC = !c.value.trim(), badS = !st.value;
+    setErr(e, $('errEmail'), badE); setErr(c, $('errCity'), badC); setErr(st, $('errState'), badS);
+    if (badE) e.focus(); else if (badC) c.focus(); else if (badS) st.focus();
+    return !badE && !badC && !badS;
   }
   $('wlEmail').addEventListener('input', function () { if (this.classList.contains('bad') && emailRe.test(this.value.trim())) setErr(this, $('errEmail'), false); });
+  $('wlState').addEventListener('change', function () { if (this.value) setErr(this, $('errState'), false); });
   $('wlCity').addEventListener('input', function () { if (this.classList.contains('bad') && this.value.trim()) setErr(this, $('errCity'), false); });
   form.addEventListener('submit', function (ev) {
     ev.preventDefault();
@@ -189,6 +195,7 @@ footer a { font-weight:700; }
       name: name || '(not given)',
       email: $('wlEmail').value.trim(),
       city: $('wlCity').value.trim(),
+      state: $('wlState').value,
       sober: $('wlSober').value || '(not given)',
       looking: looking.join(', ') || '(not given)',
       _subject: 'New Clean Date waitlist signup',
