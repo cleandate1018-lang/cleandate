@@ -270,6 +270,60 @@ header .btn { flex-shrink: 0; }
 .dist-bubble { position:absolute; top:0; transform:translateX(-50%); background:var(--accent); color:#fff; font-size:13px; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap; pointer-events:none; }
 .dist-bubble::after { content:''; position:absolute; left:50%; bottom:-4px; transform:translateX(-50%); border:4px solid transparent; border-bottom:0; border-top-color:var(--accent); }
 .dist-ticks { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:6px; }
+
+/* ---------- Chat extras: header actions, composer tools, emoji, photos, calls ---------- */
+#chat header .chat-who { display:flex; align-items:center; gap:10px; min-width:0; flex:1; }
+#chat header .chat-who strong { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chat-actions { display:flex; gap:2px; flex-shrink:0; }
+.chat-actions .icon-btn { color:var(--accent); width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center; }
+.composer-row { display:flex; gap:6px; align-items:center; }
+.composer-row .input { min-width:0; }
+.tool-btn { flex-shrink:0; width:40px; height:40px; border:none; border-radius:50%; background:#f1f5f9; color:var(--muted); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; }
+.tool-btn:active { transform:scale(.94); }
+.tool-btn.on { background:var(--accent-soft); color:var(--accent-dark); }
+.send-btn { width:auto; flex-shrink:0; padding:12px 16px; margin:0; }
+.emoji-picker { display:none; grid-template-columns:repeat(auto-fill, minmax(40px, 1fr)); gap:2px; max-height:184px; overflow-y:auto; background:#fff; border:1px solid var(--border); border-radius:16px; padding:8px; margin-bottom:8px; box-shadow:0 6px 20px rgba(0,0,0,.08); }
+.emoji-picker.show { display:grid; }
+.emoji-picker button { background:none; border:none; font-size:24px; line-height:1; height:40px; border-radius:10px; cursor:pointer; padding:0; }
+.emoji-picker button:active { background:#f1f5f9; }
+.chat-bubble.photo { padding:4px; background:transparent; border:none; }
+.chat-bubble.photo img { display:block; max-width:min(220px, 62vw); max-height:280px; border-radius:16px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+.chat-bubble.me.photo img { border-bottom-right-radius:6px; }
+.chat-sys { align-self:center; text-align:center; font-size:12px; color:var(--muted); background:#eef2f6; padding:6px 12px; border-radius:999px; margin:4px auto 10px; width:fit-content; }
+#chatMessages { display:flex; flex-direction:column; }
+.viewer { position:absolute; inset:0; background:rgba(0,0,0,.94); z-index:80; display:none; align-items:center; justify-content:center; }
+.viewer.show { display:flex; }
+.viewer img { max-width:100%; max-height:100%; object-fit:contain; }
+.viewer .icon-btn { position:absolute; top:calc(30px + env(safe-area-inset-top)); right:14px; color:#fff; font-size:26px; }
+.call-screen { position:absolute; inset:0; z-index:70; display:none; flex-direction:column; align-items:center; color:#fff; background:linear-gradient(160deg,#0f766e 0%,#0f172a 75%); overflow:hidden; }
+.call-screen.show { display:flex; }
+.call-remote { position:absolute; inset:0; background:#0f172a center/cover; display:none; }
+.call-remote::after { content:''; position:absolute; inset:0; background:linear-gradient(rgba(15,23,42,.55), rgba(15,23,42,.15) 40%, rgba(15,23,42,.75)); }
+.call-screen.video .call-remote { display:block; }
+.call-top { position:relative; z-index:2; text-align:center; padding:calc(96px + env(safe-area-inset-top)) 24px 0; width:100%; }
+.call-avatar { width:148px; height:148px; border-radius:50%; background:#334155 center/cover; margin:0 auto 22px; border:4px solid rgba(255,255,255,.25); box-shadow:0 0 0 0 rgba(204,251,241,.5); animation:ring 1.6s infinite; }
+.call-screen.connected .call-avatar { animation:none; }
+.call-screen.video .call-avatar { display:none; }
+@keyframes ring { 0% { box-shadow:0 0 0 0 rgba(204,251,241,.45); } 100% { box-shadow:0 0 0 26px rgba(204,251,241,0); } }
+.call-name { font-size:30px; font-weight:800; letter-spacing:-.5px; text-shadow:0 2px 10px rgba(0,0,0,.3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.call-status { margin-top:6px; font-size:16px; opacity:.85; font-variant-numeric:tabular-nums; }
+.call-kind { margin-top:4px; font-size:13px; opacity:.65; }
+.self-view { position:absolute; z-index:3; top:calc(40px + env(safe-area-inset-top)); right:16px; width:104px; height:148px; border-radius:18px; overflow:hidden; background:#1e293b; border:2px solid rgba(255,255,255,.35); box-shadow:0 8px 24px rgba(0,0,0,.35); display:none; }
+.call-screen.video .self-view { display:block; }
+.self-view video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:none; }
+.self-view.live video { display:block; }
+.self-ph { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; font-size:11px; color:#cbd5e1; text-align:center; padding:6px; background:#1e293b center/cover; }
+.self-view.live .self-ph { display:none; }
+.call-controls { position:absolute; z-index:2; left:0; right:0; bottom:calc(40px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; align-items:center; gap:26px; }
+.call-toggles { display:flex; gap:22px; justify-content:center; }
+.call-tg { display:flex; flex-direction:column; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,.85); background:none; border:none; cursor:pointer; padding:0; }
+.call-tg .c { width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,.16); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; color:#fff; transition:background .2s; }
+.call-tg.on .c { background:#fff; color:#0f172a; }
+.call-end { width:72px; height:72px; border-radius:50%; border:none; background:var(--danger); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 8px 24px rgba(239,68,68,.45); }
+.call-end:active { transform:scale(.94); }
+.call-screen.video .call-top { text-align:left; padding:calc(52px + env(safe-area-inset-top)) 136px 0 22px; }
+.call-screen.video .call-name { font-size:26px; }
+.call-tg, .call-end, .tool-btn, .emoji-picker button, .chat-actions .icon-btn { -webkit-tap-highlight-color: transparent; }
 </style>
 </head>
 <body>
@@ -460,11 +514,14 @@ header .btn { flex-shrink: 0; }
   <div id="chat" class="screen has-nav">
     <header>
       <button class="icon-btn" onclick="showScreen('matches')">←</button>
-      <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+      <div class="chat-who">
         <div id="chatAvatar" style="width:36px; height:36px; border-radius:50%; background:#e2e8f0 center/cover; flex-shrink:0;"></div>
         <div style="min-width:0;"><strong id="chatName">Jordan</strong><div class="muted" id="chatSober" style="font-size:12px;">2 years sober</div></div>
       </div>
-      <div style="width:38px;"></div>
+      <div class="chat-actions">
+        <button class="icon-btn" id="voiceCallBtn" onclick="startCall('voice')" title="Voice call" aria-label="Voice call"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+        <button class="icon-btn" id="videoCallBtn" onclick="startCall('video')" title="Video call" aria-label="Video call"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></button>
+      </div>
     </header>
     <div class="content" id="chatMessages"></div>
     <div class="composer">
@@ -473,10 +530,14 @@ header .btn { flex-shrink: 0; }
         <button class="icebreaker" onclick="sendIcebreaker(this)">How has recovery changed your weekends?</button>
         <button class="icebreaker" onclick="sendIcebreaker(this)">Coffee or hike this weekend?</button>
       </div>
-      <div style="display:flex; gap:8px;">
-        <input class="input" id="chatInput" placeholder="Message..." style="margin:0; flex:1; padding:12px 16px;" enterkeyhint="send">
-        <button class="btn" style="width:auto; padding:12px 20px; margin:0;" onclick="sendMessage()">Send</button>
+      <div class="emoji-picker" id="emojiPicker" role="listbox" aria-label="Emoji"></div>
+      <div class="composer-row">
+        <button class="tool-btn" id="emojiBtn" onmousedown="event.preventDefault()" onclick="toggleEmoji()" title="Emoji" aria-label="Emoji"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+        <button class="tool-btn" id="photoBtn" onclick="document.getElementById('chatPhotoInput').click()" title="Send a photo" aria-label="Send a photo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+        <input class="input" id="chatInput" placeholder="Message..." style="margin:0; flex:1; padding:12px 14px;" enterkeyhint="send" autocomplete="off">
+        <button class="btn send-btn" onclick="sendMessage()">Send</button>
       </div>
+      <input type="file" id="chatPhotoInput" accept="image/*" style="display:none;" onchange="sendChatPhoto(this)">
     </div>
     <div class="nav"></div>
   </div>
@@ -605,6 +666,33 @@ header .btn { flex-shrink: 0; }
       <button class="btn danger" onclick="sheetRemove()">Remove photo</button>
       <button class="btn secondary" onclick="closeSheet()">Cancel</button>
     </div>
+  </div>
+  <!-- Voice / video call (mock) -->
+  <div class="call-screen" id="callScreen" aria-modal="true" role="dialog">
+    <div class="call-remote" id="callRemote"></div>
+    <div class="self-view" id="selfView">
+      <video id="selfVideo" autoplay muted playsinline></video>
+      <div class="self-ph" id="selfPh"><span style="font-size:22px;">📷</span><span id="selfPhText">Camera off</span></div>
+    </div>
+    <div class="call-top">
+      <div class="call-avatar" id="callAvatar"></div>
+      <div class="call-name" id="callName">Jordan</div>
+      <div class="call-status" id="callStatus">Calling…</div>
+      <div class="call-kind" id="callKind">Clean Date voice call</div>
+    </div>
+    <div class="call-controls">
+      <div class="call-toggles">
+        <button class="call-tg" id="tgMute" onclick="callToggle('mute')"><span class="c"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></span><span class="l">Mute</span></button>
+        <button class="call-tg" id="tgCam" onclick="callToggle('cam')"><span class="c"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span><span class="l">Camera</span></button>
+        <button class="call-tg" id="tgSpk" onclick="callToggle('spk')"><span class="c"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span><span class="l">Speaker</span></button>
+      </div>
+      <button class="call-end" id="endCallBtn" onclick="endCall()" aria-label="End call"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .4-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85a1 1 0 0 1-1.4-.02L.29 13.08a1 1 0 0 1 0-1.41C3.34 8.77 7.46 7 12 7s8.66 1.77 11.71 4.67a1 1 0 0 1 0 1.41l-2.48 2.48a1 1 0 0 1-1.4.02 11.3 11.3 0 0 0-2.67-1.85 1 1 0 0 1-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg></button>
+    </div>
+  </div>
+  <!-- Full-screen photo viewer -->
+  <div class="viewer" id="photoViewer" onclick="closeViewer()">
+    <button class="icon-btn" aria-label="Close">✕</button>
+    <img id="viewerImg" alt="">
   </div>
   <div class="toast" id="toast"></div>
 </div>
@@ -1121,7 +1209,7 @@ function renderMatches() {
     const m = state.matches[i];
     const msgs = state.chats[m.name] || [];
     const last = msgs.length ? msgs[msgs.length - 1] : null;
-    const preview = last ? (last.from === 'me' ? 'You: ' : '') + last.text : 'Say hi 👋';
+    const preview = last ? (last.from === 'me' ? 'You: ' : '') + (last.img ? '📷 Photo' : last.text) : 'Say hi 👋';
     return `<div class="card" style="display:flex; gap:12px; align-items:center; cursor:pointer;" onclick="openChat(${i})">
       <div style="width:56px; height:56px; border-radius:50%; background:${esc(cssUrl(m.photo))} center/cover; flex-shrink:0;"></div>
       <div style="min-width:0; flex:1;"><strong>${esc(m.name)}</strong><div class="muted" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(preview)}</div></div>
@@ -1138,6 +1226,7 @@ function openChat(i) {
   document.getElementById('chatAvatar').style.backgroundImage = cssUrl(m.photo);
   chatFor(m.name);
   saveState();
+  toggleEmoji(false);
   showScreen('chat');
   renderChat();
 }
@@ -1145,7 +1234,13 @@ function renderChat() {
   const m = state.matches[activeChat];
   if (!m) return;
   const chat = document.getElementById('chatMessages');
-  chat.innerHTML = chatFor(m.name).map(x => `<div class="chat-bubble ${x.from === 'me' ? 'me' : 'them'}">${esc(x.text)}</div>`).join('');
+  chat.innerHTML = chatFor(m.name).map((x, i) => {
+    if (x.from === 'system') return `<div class="chat-sys">${esc(x.text)}</div>`;
+    const who = x.from === 'me' ? 'me' : 'them';
+    if (x.img) return `<div class="chat-bubble ${who} photo"><img src="${esc(x.img)}" alt="Photo" onclick="openViewer(this.src)"></div>`;
+    return `<div class="chat-bubble ${who}">${esc(x.text)}</div>`;
+  }).join('');
+  fitChatPadding();
   chat.scrollTop = chat.scrollHeight;
 }
 function sendMessage() {
@@ -1156,6 +1251,7 @@ function sendMessage() {
   const name = m.name;
   chatFor(name).push({ from: 'me', text });
   input.value = '';
+  toggleEmoji(false);
   saveState();
   renderChat();
   setTimeout(() => {
@@ -1170,6 +1266,186 @@ function sendIcebreaker(btn) {
 }
 document.getElementById('chatInput').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); sendMessage(); }
+});
+
+
+/* ---------- Chat: emoji picker ---------- */
+const EMOJIS = ['😊','😂','🤣','😍','🥰','😘','😎','🤩','🥳','😇','😅','🙈','😭','🤯','🤔','😴',
+  '❤️','💖','💕','💙','💚','💜','🧡','💛','👍','👏','🙌','🤝','💪','🙏','✌️','🤞',
+  '🔥','✨','⭐','🌟','💯','🎉','🎈','🏆','🌿','☕','🍵','🧋','🍕','🌮','🍣','🍰',
+  '🏃','🚴','🧘','🏋️','⚽','🏀','🎾','🧗','🥾','🎲','🎨','🎵','📖','🎬','🌅','🌲',
+  '🌸','🌻','🌈','☀️','🌙','🐶','🐱','🦊','🐼','🐰','💬','👀','👋','🫶','🤗','😌'];
+function buildEmojiPicker() {
+  const p = document.getElementById('emojiPicker');
+  if (p.childElementCount) return;
+  p.innerHTML = EMOJIS.map(e => `<button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('${e}')" aria-label="${e}">${e}</button>`).join('');
+}
+function toggleEmoji(force) {
+  const p = document.getElementById('emojiPicker');
+  buildEmojiPicker();
+  const show = typeof force === 'boolean' ? force : !p.classList.contains('show');
+  p.classList.toggle('show', show);
+  document.getElementById('emojiBtn').classList.toggle('on', show);
+  if (show) { const inp = document.getElementById('chatInput'); if (document.activeElement === inp) inp.blur(); }
+  fitChatPadding(true);
+}
+function insertEmoji(e) {
+  const input = document.getElementById('chatInput');
+  const len = input.value.length;
+  const start = input.selectionStart == null ? len : input.selectionStart;
+  const end = input.selectionEnd == null ? len : input.selectionEnd;
+  input.setRangeText(e, start, end, 'end');
+  // keep the caret right after the inserted emoji (works even while the input isn't focused)
+  const pos = start + e.length;
+  try { input.setSelectionRange(pos, pos); } catch (_) {}
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+// keep the chat list clear of the composer (which grows when the emoji picker opens)
+function fitChatPadding(scroll) {
+  const chat = document.getElementById('chatMessages');
+  const comp = document.querySelector('#chat .composer');
+  const nav = document.querySelector('#chat .nav');
+  if (!chat || !comp || !comp.offsetHeight) return;
+  chat.style.paddingBottom = (comp.offsetHeight + (nav ? nav.offsetHeight : 0) + 16) + 'px';
+  if (scroll !== false) chat.scrollTop = chat.scrollHeight;
+}
+window.addEventListener('resize', () => { if (document.getElementById('chat').classList.contains('active')) fitChatPadding(); });
+
+/* ---------- Chat: photos ---------- */
+async function sendChatPhoto(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  const m = state.matches[activeChat];
+  if (!file || !m) return;
+  if (!/^image\//.test(file.type)) { toast('Please choose an image'); return; }
+  let url;
+  try { url = await resizeImage(file, 600, 0.72); }
+  catch (e) { console.warn('Photo read failed', e); toast('Couldn’t open that photo'); return; }
+  const name = m.name;
+  const list = chatFor(name);
+  const msg = { from: 'me', img: url, t: Date.now() };
+  list.push(msg);
+  if (!saveState()) {
+    list.splice(list.indexOf(msg), 1);
+    saveState();
+    toast('Not enough space to save that photo');
+    renderChat();
+    return;
+  }
+  renderChat();
+  setTimeout(() => {
+    chatFor(name).push({ from: 'them', text: ['Great pic! 😍', 'Love that! 📸', 'Ha, that’s awesome 😄'][Math.floor(Math.random() * 3)] });
+    saveState();
+    if (document.getElementById('chat').classList.contains('active') && state.matches[activeChat] && state.matches[activeChat].name === name) renderChat();
+  }, 1400);
+}
+function openViewer(src) { document.getElementById('viewerImg').src = src; document.getElementById('photoViewer').classList.add('show'); }
+function closeViewer() { document.getElementById('photoViewer').classList.remove('show'); document.getElementById('viewerImg').removeAttribute('src'); }
+
+/* ---------- Voice / video calls (mock) ---------- */
+const call = { active: false, kind: null, id: 0, stream: null, timer: null, connectT: null, started: 0, mute: false, cam: true, spk: false, name: '' };
+function fmtDur(sec) { const m = Math.floor(sec / 60), s = sec % 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
+function stopCallStream() {
+  if (call.stream) { call.stream.getTracks().forEach(t => { try { t.stop(); } catch (_) {} }); call.stream = null; }
+  const v = document.getElementById('selfVideo');
+  if (v) { v.pause && v.pause(); v.srcObject = null; }
+  document.getElementById('selfView').classList.remove('live');
+}
+function renderCallToggles() {
+  const set = (id, on, label) => { const b = document.getElementById(id); b.classList.toggle('on', on); b.querySelector('.l').textContent = label; };
+  set('tgMute', call.mute, call.mute ? 'Unmute' : 'Mute');
+  set('tgSpk', call.spk, 'Speaker');
+  set('tgCam', call.kind === 'video' && !call.cam, call.cam ? 'Camera' : 'Camera off');
+  document.getElementById('tgCam').style.display = call.kind === 'video' ? '' : 'none';
+}
+function setSelfPlaceholder(text) {
+  document.getElementById('selfPhText').textContent = text;
+  const ph = document.getElementById('selfPh');
+  const up = state.user && (state.user.photos || [])[0];
+  ph.style.backgroundImage = up ? `linear-gradient(rgba(15,23,42,.55),rgba(15,23,42,.55)), ${cssUrl(up)}` : '';
+}
+async function startSelfCamera(id) {
+  setSelfPlaceholder('Starting camera…');
+  const md = navigator.mediaDevices;
+  if (!md || !md.getUserMedia || !window.isSecureContext) { setSelfPlaceholder('Camera unavailable'); return; }
+  try {
+    const stream = await md.getUserMedia({ video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 640 } }, audio: false });
+    if (!call.active || call.id !== id) { stream.getTracks().forEach(t => t.stop()); return; }
+    call.stream = stream;
+    stream.getVideoTracks().forEach(t => { t.enabled = call.cam; });
+    const v = document.getElementById('selfVideo');
+    v.srcObject = stream;
+    try { await v.play(); } catch (_) {}
+    document.getElementById('selfView').classList.toggle('live', call.cam);
+    if (!call.cam) setSelfPlaceholder('Camera off');
+  } catch (e) {
+    if (call.id !== id) return;
+    console.info('Camera not available:', e && e.name);
+    setSelfPlaceholder(e && e.name === 'NotAllowedError' ? 'Camera blocked' : 'Camera unavailable');
+  }
+}
+function startCall(kind) {
+  const m = state.matches[activeChat];
+  if (!m || call.active) return;
+  toggleEmoji(false);
+  Object.assign(call, { active: true, kind, id: call.id + 1, started: 0, mute: false, cam: true, spk: kind === 'video', name: m.name });
+  const scr = document.getElementById('callScreen');
+  scr.classList.toggle('video', kind === 'video');
+  scr.classList.remove('connected');
+  document.getElementById('callAvatar').style.backgroundImage = cssUrl(m.photo);
+  document.getElementById('callRemote').style.backgroundImage = cssUrl(m.photo);
+  document.getElementById('callName').textContent = m.name;
+  document.getElementById('callStatus').textContent = 'Calling…';
+  document.getElementById('callKind').textContent = kind === 'video' ? 'Clean Date video call' : 'Clean Date voice call';
+  renderCallToggles();
+  scr.classList.add('show');
+  const id = call.id;
+  if (kind === 'video') startSelfCamera(id);
+  call.connectT = setTimeout(() => {
+    if (!call.active || call.id !== id) return;
+    call.started = Date.now();
+    scr.classList.add('connected');
+    const tick = () => { document.getElementById('callStatus').textContent = fmtDur(Math.floor((Date.now() - call.started) / 1000)); };
+    tick();
+    call.timer = setInterval(tick, 1000);
+  }, 2500);
+}
+function callToggle(which) {
+  if (!call.active) return;
+  if (which === 'mute') call.mute = !call.mute;
+  if (which === 'spk') call.spk = !call.spk;
+  if (which === 'cam') {
+    call.cam = !call.cam;
+    if (call.stream) {
+      call.stream.getVideoTracks().forEach(t => { t.enabled = call.cam; });
+      document.getElementById('selfView').classList.toggle('live', call.cam);
+    }
+    if (!call.cam) setSelfPlaceholder('Camera off');
+    else if (!call.stream) startSelfCamera(call.id);
+  }
+  renderCallToggles();
+}
+function endCall() {
+  if (!call.active) return;
+  const secs = call.started ? Math.max(1, Math.floor((Date.now() - call.started) / 1000)) : 0;
+  clearTimeout(call.connectT); clearInterval(call.timer);
+  call.timer = call.connectT = null;
+  stopCallStream();
+  call.active = false;
+  call.id++;
+  const scr = document.getElementById('callScreen');
+  scr.classList.remove('show', 'connected', 'video');
+  const label = (call.kind === 'video' ? '📹 Video call' : '📞 Voice call') + (secs ? ' · ' + fmtDur(secs) : ' · cancelled');
+  if (call.name) { chatFor(call.name).push({ from: 'system', text: label, t: Date.now() }); saveState(); }
+  if (document.getElementById('chat').classList.contains('active')) renderChat();
+  toast(secs ? 'Call ended' : 'Call cancelled');
+}
+window.addEventListener('pagehide', stopCallStream);
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (call.active) endCall();
+  else if (document.getElementById('photoViewer').classList.contains('show')) closeViewer();
+  else toggleEmoji(false);
 });
 
 /* ---------- Events ---------- */
