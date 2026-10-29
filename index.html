@@ -511,13 +511,14 @@ header .btn { flex-shrink: 0; }
           <div id="tags" style="margin-top:10px;"></div>
           <div id="photoGallery" class="gallery" style="margin-top:12px;"></div>
           <div class="detail-grid">
+            <div><span class="muted">Gender</span><br><strong id="cardGender">—</strong></div>
             <div><span class="muted">Kids</span><br><strong id="kids">—</strong></div>
             <div><span class="muted">Height</span><br><strong id="height">—</strong></div>
             <div><span class="muted">Smoking</span><br><strong id="smoker">—</strong></div>
             <div><span class="muted">Work</span><br><strong id="job">—</strong></div>
             <div><span class="muted">Location</span><br><strong id="location">—</strong></div>
             <div><span class="muted">Program</span><br><strong id="program">—</strong></div>
-            <div style="grid-column:1 / -1;"><span class="muted">Intentions</span><br><strong id="looking">—</strong></div>
+            <div><span class="muted">Intentions</span><br><strong id="looking">—</strong></div>
           </div>
         </div>
       </div>
@@ -1171,6 +1172,7 @@ function loadProfile() {
   document.getElementById('bioText').textContent = p.bio;
   document.getElementById('tags').innerHTML = p.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('');
   ['kids', 'height', 'smoker', 'job', 'location', 'program'].forEach(k => { document.getElementById(k).textContent = p[k] || '—'; });
+  document.getElementById('cardGender').textContent = p.gender || '—';
   document.getElementById('looking').textContent = p.looking.join(', ');
   const gallery = document.getElementById('photoGallery');
   card.style.backgroundImage = p.photos && p.photos.length ? cssUrl(p.photos[0]) : 'linear-gradient(135deg,#0d9488,#5eead4)';
