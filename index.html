@@ -1363,7 +1363,8 @@ function useMyLocation() {
   toast('Getting your location…');
   navigator.geolocation.getCurrentPosition(pos => {
     if (!state.user) return;
-    state.user.lat = +pos.coords.latitude.toFixed(4); state.user.lng = +pos.coords.longitude.toFixed(4);
+    // rounded to ~1 km so a member's exact home spot is never stored or shared
+    state.user.lat = +pos.coords.latitude.toFixed(2); state.user.lng = +pos.coords.longitude.toFixed(2);
     state.user.geoLoc = state.user.location; state.user.geoSrc = 'device';
     saveState(); updateDistFrom();
     toast('Using your current location for distance');
