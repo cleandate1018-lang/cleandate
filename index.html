@@ -122,6 +122,10 @@ header {
 }
 .profile-info { position: relative; z-index: 1; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 .profile-name { font-size: 34px; font-weight: 800; letter-spacing: -0.6px; }
+.card-dist { font-size: 15px; font-weight: 600; margin-top: 8px; }
+.card-dist:empty { display: none; }
+.dist-from { font-size: 13px; margin: 10px 0 16px; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.dist-from button { background: none; border: none; color: var(--accent-dark); font-weight: 600; font-size: 13px; padding: 4px 0; cursor: pointer; }
 .badge {
   display: inline-block;
   background: rgba(255,255,255,0.95);
@@ -568,6 +572,7 @@ header .btn { flex-shrink: 0; }
           <div class="profile-info">
             <div class="profile-name" id="cardName">Alex, 28</div>
             <div class="badge" id="cardSober">1 year sober</div>
+            <div class="card-dist" id="cardDist"></div>
           </div>
         </div>
         <div style="display:flex; gap:12px; margin:4px 0 12px;">
@@ -764,6 +769,7 @@ header .btn { flex-shrink: 0; }
         <input type="range" min="1" max="100" value="25" id="filterDistance" style="width:100%; margin:0; accent-color:var(--accent);" oninput="updateDistance()">
         <div class="dist-ticks"><span>1 mi</span><span>25</span><span>50</span><span>75</span><span>100 mi</span></div>
       </div>
+      <div class="dist-from muted"><span id="distFrom"></span><button type="button" id="useMyLocationBtn" onclick="useMyLocation()">📍 Use my current location</button></div>
       <label class="muted">Age range</label>
       <div style="display:flex; gap:8px; margin-top:8px;">
         <input class="input" type="number" value="18" min="18" id="filterAgeMin" style="flex:1;">
@@ -954,32 +960,32 @@ let state = {
 };
 
 const profiles = [
-  { name: "Alex", age: 28, sober: "1 year sober", bio: "Hiking, coffee dates, board games, and early mornings. Looking for someone who gets that life is better without the hangover.", tags: ["Hiking","Coffee","Recovery","Outdoors"], kids: "No kids", height: "5'10\"", smoker: "Non-smoker", job: "Graphic Designer", location: "Austin, TX", looking: ["Dating","Long-term"], program: "AA", gender: "Male", photos: [
+  { name: "Alex", age: 28, sober: "1 year sober", bio: "Hiking, coffee dates, board games, and early mornings. Looking for someone who gets that life is better without the hangover.", tags: ["Hiking","Coffee","Recovery","Outdoors"], kids: "No kids", height: "5'10\"", smoker: "Non-smoker", job: "Graphic Designer", location: "New Haven, CT", lat: 41.3083, lng: -72.9279, looking: ["Dating","Long-term"], program: "AA", gender: "Male", photos: [
     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&h=1000&fit=crop"
   ] },
-  { name: "Taylor", age: 31, sober: "6 months sober", bio: "Looking for someone who prefers sunrise hikes over late nights. Sober and proud.", tags: ["Outdoors","Reading","Fitness"], kids: "1 kid (part-time)", height: "5'7\"", smoker: "Non-smoker", job: "Nurse", location: "Denver, CO", looking: ["Dating"], program: "NA", gender: "Female", photos: [
+  { name: "Taylor", age: 31, sober: "6 months sober", bio: "Looking for someone who prefers sunrise hikes over late nights. Sober and proud.", tags: ["Outdoors","Reading","Fitness"], kids: "1 kid (part-time)", height: "5'7\"", smoker: "Non-smoker", job: "Nurse", location: "Stratford, CT", lat: 41.1845, lng: -73.1332, looking: ["Dating"], program: "NA", gender: "Female", photos: [
     "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=1000&fit=crop"
   ] },
-  { name: "Morgan", age: 26, sober: "2 years sober", bio: "Sober curious turned committed. Love cooking and live music (the early sets).", tags: ["Cooking","Music","Art"], kids: "No kids", height: "5'4\"", smoker: "Non-smoker", job: "Marketing Manager", location: "Portland, OR", looking: ["Dating","Long-term"], program: "None", gender: "Trans", photos: [
+  { name: "Morgan", age: 26, sober: "2 years sober", bio: "Sober curious turned committed. Love cooking and live music (the early sets).", tags: ["Cooking","Music","Art"], kids: "No kids", height: "5'4\"", smoker: "Non-smoker", job: "Marketing Manager", location: "Bridgeport, CT", lat: 41.1865, lng: -73.1952, looking: ["Dating","Long-term"], program: "None", gender: "Trans", photos: [
     "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&h=1000&fit=crop"
   ] },
-  { name: "Riley", age: 29, sober: "8 months sober", bio: "Coffee enthusiast, trail runner, and recovery advocate. Let's build something real.", tags: ["Running","Coffee","Community"], kids: "Wants kids someday", height: "6'1\"", smoker: "Non-smoker", job: "Software Engineer", location: "Seattle, WA", looking: ["Dating"], program: "Other", gender: "Male", photos: [
+  { name: "Riley", age: 29, sober: "8 months sober", bio: "Coffee enthusiast, trail runner, and recovery advocate. Let's build something real.", tags: ["Running","Coffee","Community"], kids: "Wants kids someday", height: "6'1\"", smoker: "Non-smoker", job: "Software Engineer", location: "Hartford, CT", lat: 41.7658, lng: -72.6734, looking: ["Dating"], program: "Other", gender: "Male", photos: [
     "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1463453091185-61582044d556?w=800&h=1000&fit=crop"
   ] },
-  { name: "Sophia", age: 27, sober: "1.5 years sober", bio: "Love hiking, yoga, and good coffee. Looking for genuine connections.", tags: ["Yoga","Hiking","Coffee","Travel"], kids: "No kids", height: "5'6\"", smoker: "Non-smoker", job: "Yoga Instructor", location: "Austin, TX", looking: ["Dating","Long-term"], program: "AA", gender: "Female", photos: [
+  { name: "Sophia", age: 27, sober: "1.5 years sober", bio: "Love hiking, yoga, and good coffee. Looking for genuine connections.", tags: ["Yoga","Hiking","Coffee","Travel"], kids: "No kids", height: "5'6\"", smoker: "Non-smoker", job: "Yoga Instructor", location: "Fairfield, CT", lat: 41.1412, lng: -73.2637, looking: ["Dating","Long-term"], program: "AA", gender: "Female", photos: [
     "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?w=800&h=1000&fit=crop"
   ] },
-  { name: "Jordan", age: 30, sober: "2 years sober", bio: "Early riser, board game nerd, and proud of every sober day. Looking for something real.", tags: ["Board games","Hiking","Recovery"], kids: "No kids", height: "5'11\"", smoker: "Non-smoker", job: "Teacher", location: "Austin, TX", looking: ["Dating","Long-term"], program: "AA", gender: "Male", photos: [
+  { name: "Jordan", age: 30, sober: "2 years sober", bio: "Early riser, board game nerd, and proud of every sober day. Looking for something real.", tags: ["Board games","Hiking","Recovery"], kids: "No kids", height: "5'11\"", smoker: "Non-smoker", job: "Teacher", location: "New York, NY", lat: 40.7128, lng: -74.006, looking: ["Dating","Long-term"], program: "AA", gender: "Male", photos: [
     "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&h=1000&fit=crop"
@@ -1268,8 +1274,8 @@ function completeSignup() {
   if (!saveState()) { state.user.photos = state.user.photos.slice(0, 1); saveState(); }
   updateProfileUI();
   showScreen('discover');
-  if (!window.CD) { toast('Saved on this device only — cloud not ready'); return; }
-  window.CD.saveProfile(state.user, true)
+  if (!window.CD) { toast('Saved on this device only — cloud not ready'); refreshUserCoords(); return; }
+  refreshUserCoords().catch(() => {}).then(() => window.CD.saveProfile(state.user, true))
     .then(() => toast('Welcome to Clean Date, ' + state.user.name + '! Saved to cloud ✓'))
     .catch(e => { console.error(e); toast('Could not save to cloud: ' + friendlyError(e)); });
 }
@@ -1290,6 +1296,80 @@ function splitLocation(loc) {
   return { city: loc, state: '' };
 }
 document.addEventListener('DOMContentLoaded', fillStateSelects); fillStateSelects();
+
+/* ---------- Location coordinates (geocoded from "City, ST", cached per location string) ---------- */
+const GEO_CACHE_KEY = 'cleandate_geo_v1';
+function geoCache() { try { const c = JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || '{}'); return c && typeof c === 'object' && !Array.isArray(c) ? c : {}; } catch (e) { return {}; } }
+function geoCachePut(loc, v) { try { const c = geoCache(); c[loc] = v; localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(c)); } catch (e) {} }
+async function geocodeLocation(loc) {
+  loc = (loc || '').trim();
+  const L = splitLocation(loc);
+  if (!L.city) return null; // need at least a city
+  const hit = geoCache()[loc];
+  if (hit && hasCoords(hit)) return { lat: hit.lat, lng: hit.lng };
+  if (hit && hit.fail && Date.now() - hit.fail < 6 * 3600 * 1000) return null; // don't hammer the service for a place it couldn't find
+  const stateName = (US_STATES.find(x => x[0] === L.state) || [])[1];
+  const q = new URLSearchParams({ format: 'jsonv2', limit: '1', addressdetails: '0' });
+  if (stateName) { q.set('city', L.city); q.set('state', stateName); q.set('countrycodes', 'us'); }
+  else q.set('q', L.city);
+  const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = setTimeout(() => ctrl && ctrl.abort(), 8000);
+  try {
+    const r = await fetch('https://nominatim.openstreetmap.org/search?' + q.toString(), { headers: { 'Accept': 'application/json' }, signal: ctrl ? ctrl.signal : undefined });
+    if (!r.ok) throw new Error('geocode HTTP ' + r.status);
+    const j = await r.json();
+    const g = Array.isArray(j) && j[0] ? { lat: parseFloat(j[0].lat), lng: parseFloat(j[0].lon) } : null;
+    if (g && hasCoords(g)) { geoCachePut(loc, g); return g; }
+    geoCachePut(loc, { fail: Date.now() });
+    return null;
+  } catch (e) { console.warn('Could not look up location (distance will show as unknown):', e && e.message); return null; }
+  finally { clearTimeout(timer); }
+}
+// Make sure state.user has coordinates for its current location. Returns true if coords changed.
+let geoInFlight = null;
+async function refreshUserCoords() {
+  const u = state.user;
+  if (!u || !u.location) return false;
+  if (hasCoords(u) && u.geoLoc === u.location) return false;
+  if (geoInFlight) return geoInFlight;
+  const loc = u.location;
+  geoInFlight = (async () => {
+    const g = await geocodeLocation(loc);
+    if (!state.user || state.user.location !== loc) return false;
+    if (g) { state.user.lat = g.lat; state.user.lng = g.lng; state.user.geoLoc = loc; state.user.geoSrc = 'city'; }
+    else { delete state.user.lat; delete state.user.lng; delete state.user.geoLoc; }
+    saveState();
+    if (document.getElementById('discover').classList.contains('active')) loadProfile();
+    return !!g;
+  })();
+  try { return await geoInFlight; } finally { geoInFlight = null; }
+}
+// Called on app open: geocode older profiles that have no coordinates yet, then store them in the cloud.
+async function ensureUserCoords() {
+  if (!state.user || !state.loggedIn) return;
+  const changed = await refreshUserCoords();
+  if (changed && window.CD && window.CD.saveCoords && hasCoords(state.user)) window.CD.saveCoords(state.user.lat, state.user.lng).catch(e => console.warn('Could not save location to cloud', e));
+}
+function updateDistFrom() {
+  const el = document.getElementById('distFrom');
+  if (!el) return;
+  const u = state.user;
+  el.textContent = hasCoords(u) ? (u.geoSrc === 'device' ? 'Measuring from your current location' : 'Measuring from ' + (u.location || 'your location'))
+    : (u && u.location ? 'Couldn’t find “' + u.location + '” yet, so everyone is shown' : 'Add your city in Edit Profile to filter by distance');
+}
+function useMyLocation() {
+  if (!state.user) return toast('Create your profile first');
+  if (!navigator.geolocation) return toast('Location isn’t available on this device');
+  toast('Getting your location…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    if (!state.user) return;
+    state.user.lat = +pos.coords.latitude.toFixed(4); state.user.lng = +pos.coords.longitude.toFixed(4);
+    state.user.geoLoc = state.user.location; state.user.geoSrc = 'device';
+    saveState(); updateDistFrom();
+    toast('Using your current location for distance');
+    if (window.CD && window.CD.saveCoords) window.CD.saveCoords(state.user.lat, state.user.lng).catch(e => console.warn('Could not save location to cloud', e));
+  }, () => toast('Couldn’t get your location. Using your city instead'), { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
+}
 
 /* ---------- Edit profile ---------- */
 function openEditProfile() {
@@ -1323,12 +1403,13 @@ function saveEditProfile() {
     bio: val('editBio'),
     looking: Array.from(document.querySelectorAll('.edit-intent:checked')).map(cb => cb.value)
   };
+  if (!prev || prev.location !== state.user.location) { delete state.user.lat; delete state.user.lng; delete state.user.geoLoc; delete state.user.geoSrc; }
   state.loggedIn = true;
   if (!saveState()) { state.user = prev; return; }
   showScreen('profile');
-  if (!window.CD) { toast('Profile updated on this device only'); return; }
+  if (!window.CD) { toast('Profile updated on this device only'); refreshUserCoords(); return; }
   toast('Saving…');
-  window.CD.saveProfile(state.user, false)
+  refreshUserCoords().catch(() => {}).then(() => window.CD.saveProfile(state.user, false))
     .then(() => toast('Profile saved to cloud ✓'))
     .catch(e => { console.error(e); toast('Could not save to cloud: ' + friendlyError(e)); });
 }
@@ -1372,10 +1453,29 @@ function kidsMatches(k, f) {
   if (f === 'Has kids') return /\bkids?\b/i.test(k) && !/^No kids/i.test(k) && !/wants/i.test(k);
   return k === f;
 }
+/* ---------- Distance (haversine from the signed-in user's coords) ---------- */
+function hasCoords(o) { return !!o && typeof o.lat === 'number' && typeof o.lng === 'number' && isFinite(o.lat) && isFinite(o.lng) && Math.abs(o.lat) <= 90 && Math.abs(o.lng) <= 180; }
+function haversineMiles(a, b) {
+  const R = 3958.8, rad = x => x * Math.PI / 180;
+  const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+function distanceTo(p) { // miles, or null when either side has no coordinates
+  const me = state.user;
+  return hasCoords(me) && hasCoords(p) ? haversineMiles(me, p) : null;
+}
+function distanceText(mi) {
+  if (mi == null) return '';
+  const km = state.settings && state.settings.unit === 'km';
+  const n = km ? mi * 1.609 : mi, u = km ? 'km' : 'mi';
+  return n < 1 ? `Less than 1 ${u} away` : `${Math.round(n)} ${u} away`;
+}
 function filteredProfiles() {
   const f = state.filters;
   const hidden = new Set(state.removed || []);
-  return cloudProfiles.concat(profiles).filter(p => !hidden.has(p.name) && p.age >= (f.ageMin || 18) && p.age <= (f.ageMax || 99) && (!f.gender || p.gender === f.gender) && programMatches(p.program, f.program) && kidsMatches(p.kids, f.kids) && (!f.smoker || p.smoker === f.smoker));
+  const maxMi = parseInt(f.distance, 10) || 25;
+  return cloudProfiles.concat(profiles).filter(p => { const d = distanceTo(p); return d == null || d <= maxMi; }).filter(p => !hidden.has(p.name) && p.age >= (f.ageMin || 18) && p.age <= (f.ageMax || 99) && (!f.gender || p.gender === f.gender) && programMatches(p.program, f.program) && kidsMatches(p.kids, f.kids) && (!f.smoker || p.smoker === f.smoker));
 }
 function deckProfiles() {
   const seen = new Set(state.seen || []);
@@ -1391,7 +1491,7 @@ function loadProfile() {
   const p = currentProfile();
   const anyMatch = filteredProfiles().length > 0;
   document.getElementById('emptyTitle').textContent = anyMatch ? "You've seen everyone for now" : 'No one matches your filters';
-  document.getElementById('emptyText').textContent = anyMatch ? 'Check back soon for new people, or widen your filters to see more.' : 'Try widening the age range or changing gender/program.';
+  document.getElementById('emptyText').textContent = anyMatch ? 'Check back soon for new people, or widen your filters to see more.' : 'Try increasing the distance, widening the age range, or changing gender/program.';
   document.getElementById('seeAgainBtn').style.display = anyMatch ? '' : 'none';
   document.getElementById('discoverEmpty').style.display = p ? 'none' : 'block';
   document.getElementById('discoverBody').style.display = p ? 'block' : 'none';
@@ -1402,6 +1502,9 @@ function loadProfile() {
   document.getElementById('bioText').textContent = p.bio;
   document.getElementById('tags').innerHTML = (p.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join('');
   ['kids', 'height', 'smoker', 'job', 'location', 'program'].forEach(k => { document.getElementById(k).textContent = p[k] || '—'; });
+  const distTxt = distanceText(distanceTo(p));
+  document.getElementById('cardDist').textContent = distTxt ? '📍 ' + distTxt : '';
+  if (distTxt) document.getElementById('location').textContent = (p.location ? p.location + ' · ' : '') + distTxt;
   document.getElementById('cardGender').textContent = p.gender || '—';
   document.getElementById('looking').textContent = (p.looking || []).join(', ') || '—';
   const gallery = document.getElementById('photoGallery');
@@ -2084,6 +2187,7 @@ function openFilters() {
   document.getElementById('filterProgram').value = f.program;
   document.getElementById('filterKids').value = f.kids || '';
   document.getElementById('filterSmoker').value = f.smoker || '';
+  updateDistFrom();
   showScreen('filters');
 }
 function applyFilters() {
@@ -2305,6 +2409,8 @@ updateProfileUI();
 // Firebase decides which screen to show (see the module script below).
 if (state.user && state.loggedIn) document.getElementById('authLoading').classList.add('show');
 setTimeout(() => document.getElementById('authLoading').classList.remove('show'), 8000);
+// Older profiles without coordinates get geocoded lazily (once, cached) when the app opens.
+if (state.user && state.loggedIn) setTimeout(() => { ensureUserCoords().catch(() => {}); }, 1500);
 const _origShowScreen = showScreen;
 showScreen = function (id) { _origShowScreen(id); if (id === 'settings') renderSettings(); };
 </script>
@@ -2369,6 +2475,8 @@ async function saveProfile(user, isNew) {
   data.looking = Array.isArray(data.looking) ? data.looking : [];
   data.stillUse = data.stillUse || '';
   data.stillUseList = data.stillUse ? data.stillUse.split(', ').filter(Boolean) : [];
+  data.lat = hasCoords(user) ? user.lat : null; // null clears stale coords when the city changed and couldn't be found
+  data.lng = hasCoords(user) ? user.lng : null;
   data.photos = await cloudPhotos(user.photos);
   data.photoCount = data.photos.length;
   data.visible = true;
@@ -2392,6 +2500,7 @@ function toLocalUser(d) {
   if (!u.stillUse && Array.isArray(d.stillUseList)) u.stillUse = d.stillUseList.join(', ');
   u.looking = Array.isArray(d.looking) ? d.looking : [];
   u.photos = Array.isArray(d.photos) ? d.photos : [];
+  if (hasCoords(d)) { u.lat = d.lat; u.lng = d.lng; u.geoLoc = u.location; }
   return u;
 }
 async function loadCloudMembers(myUid) {
@@ -2441,7 +2550,8 @@ window.CD = {
   signup, google,
   logout: () => signOut(auth),
   resetPassword: email => sendPasswordResetEmail(auth, email),
-  saveProfile, readProfile
+  saveProfile, readProfile,
+  saveCoords: async (lat, lng) => { const u = auth.currentUser; if (!u || !profileExists) return; await setDoc(doc(db, 'users', u.uid), { lat, lng, updatedAt: serverTimestamp() }, { merge: true }); }
 };
 
 getRedirectResult(auth).catch(e => { setAuthError('loginError', friendlyError(e)); setAuthError('signupError', friendlyError(e)); });
@@ -2469,6 +2579,7 @@ onAuthStateChanged(auth, async user => {
       clearAuthErrors();
       toast('Welcome back, ' + state.user.name + '!');
       showScreen('discover');
+      ensureUserCoords();
     } else {
       profileExists = !!d;
       state.user = null; state.loggedIn = false; saveState(); updateProfileUI();
