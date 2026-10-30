@@ -367,10 +367,20 @@ header .btn { flex-shrink: 0; }
 .onb-mosaic .col:nth-child(3) { margin-top:22px; }
 .onb-mosaic .tile { width:100%; aspect-ratio:3/4; border-radius:18px; background:#e2e8f0 center/cover no-repeat; box-shadow:0 6px 18px rgba(15,23,42,.12); flex-shrink:0; }
 .onb-mosaic::after { content:''; position:absolute; left:0; right:0; bottom:0; height:55%; background:linear-gradient(rgba(248,250,252,0), var(--bg) 85%); }
+.btn.google { background:#fff; color:#1f2937; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; gap:10px; }
+.auth-or { text-align:center; color:var(--muted); font-size:13px; margin:6px 0 12px; }
+.auth-err { color:var(--danger); font-size:14px; min-height:18px; margin:-4px 0 10px; }
+.link-btn { background:none; border:none; color:var(--accent-dark); font-weight:600; font-size:14px; cursor:pointer; padding:8px 0; }
+.cloud-table { width:100%; font-size:13px; border-collapse:collapse; }
+.cloud-table td { padding:5px 4px; border-bottom:1px solid var(--border); vertical-align:top; word-break:break-word; }
+.cloud-table td:first-child { color:var(--muted); width:38%; }
+#authLoading { position:absolute; inset:0; z-index:9000; background:rgba(248,250,252,.85); display:none; align-items:center; justify-content:center; font-weight:700; color:var(--accent-dark); }
+#authLoading.show { display:flex; }
 </style>
 </head>
 <body>
 <div class="phone">
+  <div id="authLoading">Loading…</div>
   <!-- Onboarding -->
   <div id="onboarding" class="screen active">
     <div id="floatingPhotos" class="onb-mosaic" aria-hidden="true"></div>
@@ -684,7 +694,14 @@ header .btn { flex-shrink: 0; }
         <p class="muted">Flexible short-term</p>
         <button class="btn secondary" onclick="toast('Purchases are disabled in the prototype')">Get Weekly</button>
       </div>
-      <button class="btn secondary" onclick="resetDemo()">Reset demo data</button>
+      <div class="card" id="cloudCard">
+        <h3>Saved in cloud</h3>
+        <p class="muted" id="cloudAccount" style="font-size:13px; margin-bottom:8px;">Not signed in</p>
+        <div id="cloudData" style="font-size:13px;" class="muted">Tap Refresh to see what’s saved to your account.</div>
+        <button class="btn secondary" style="margin-top:10px;" onclick="refreshCloudPanel()">Refresh from cloud</button>
+      </div>
+      <button class="btn danger" onclick="logout()">Log Out</button>
+      <button class="btn secondary" onclick="resetDemo()">Clear local cache</button>
     </div>
   </div>
 
@@ -718,15 +735,36 @@ header .btn { flex-shrink: 0; }
     </div>
   </div>
 
+  <!-- Create account (Firebase Auth) -->
+  <div id="account" class="screen">
+    <header><button class="icon-btn" onclick="showScreen('onboarding')">←</button><div class="logo">Create account</div><div style="width:38px;"></div></header>
+    <div class="content">
+      <h2 style="font-size:24px; margin-bottom:6px;">Join Clean Date</h2>
+      <p class="muted" style="margin-bottom:16px;">First, create your account. Next you'll build your profile.</p>
+      <button class="btn google" onclick="googleSignIn('signupError')"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> Continue with Google</button>
+      <div class="auth-or">or sign up with email</div>
+      <input class="input" id="signupEmail" type="email" placeholder="Email" autocomplete="email">
+      <input class="input" id="signupPassword" type="password" placeholder="Password (at least 6 characters)" autocomplete="new-password">
+      <div class="auth-err" id="signupError"></div>
+      <button class="btn" id="signupBtn" onclick="createAccount()">Create account</button>
+      <p class="muted" style="margin-top:10px; font-size:14px;">Already have an account? <button class="link-btn" onclick="showScreen('login')">Log in</button></p>
+    </div>
+  </div>
+
   <!-- Login -->
   <div id="login" class="screen">
     <header><button class="icon-btn" onclick="showScreen('onboarding')">←</button><div class="logo">Log In</div><div style="width:38px;"></div></header>
     <div class="content">
       <h2 style="font-size:24px; margin-bottom:6px;">Welcome back</h2>
       <p class="muted" style="margin-bottom:16px;">Good to see you again.</p>
-      <input class="input" id="loginEmail" type="email" placeholder="Email">
-      <input class="input" id="loginPassword" type="password" placeholder="Password">
-      <button class="btn" onclick="doLogin()">Log In</button>
+      <button class="btn google" onclick="googleSignIn('loginError')"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> Continue with Google</button>
+      <div class="auth-or">or</div>
+      <input class="input" id="loginEmail" type="email" placeholder="Email" autocomplete="email">
+      <input class="input" id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
+      <div class="auth-err" id="loginError"></div>
+      <button class="btn" id="loginBtn" onclick="doLogin()">Log In</button>
+      <button class="link-btn" onclick="forgotPassword()">Forgot password?</button>
+      <p class="muted" style="margin-top:10px; font-size:14px;">New here? <button class="link-btn" onclick="startSignup()">Create an account</button></p>
     </div>
   </div>
 
@@ -794,7 +832,7 @@ header .btn { flex-shrink: 0; }
   <div class="toast" id="toast"></div>
 </div>
 <script>
-const STORAGE_KEY = 'cleandate_v2';
+const STORAGE_KEY = 'cleandate_v3'; // production (Firebase accounts). Old prototype data lived in 'cleandate_v2' / 'soberdate_v2'.
 // Safe storage: some phone browsers (e.g. files opened from Android's Files app) block localStorage.
 // Fall back to sessionStorage, then to memory, so the app always keeps working.
 const store = (() => {
@@ -810,7 +848,17 @@ const store = (() => {
   }
   return memStore;
 })();
-try { if (!store.getItem(STORAGE_KEY) && store.getItem('soberdate_v2')) store.setItem(STORAGE_KEY, store.getItem('soberdate_v2')); } catch(e) {}
+try {
+  if (!store.getItem(STORAGE_KEY)) {
+    const oldRaw = store.getItem('cleandate_v2') || store.getItem('soberdate_v2');
+    const old = oldRaw ? JSON.parse(oldRaw) : null;
+    if (old && typeof old === 'object' && !Array.isArray(old)) {
+      const carry = {};
+      ['matches', 'chats', 'events', 'filters', 'removed'].forEach(k => { if (old[k] !== undefined) carry[k] = old[k]; });
+      store.setItem(STORAGE_KEY, JSON.stringify(carry));
+    }
+  }
+} catch (e) { console.warn('Old Clean Date data ignored', e); }
 const DEFAULT_EVENTS = [
   { id: 'e1', title: 'Morning Hike + Coffee', date: 'This Saturday', location: 'Local trails', desc: 'Low-pressure group hike followed by coffee.', emoji: '🥾', gradient: 'linear-gradient(135deg,#10b981,#34d399)', interested: 4, going: false },
   { id: 'e2', title: 'Board Game Night', date: 'Next Friday', location: 'Downtown café', desc: 'Alcohol-free social. Bring a game or just yourself.', emoji: '🎲', gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)', interested: 3, going: false }
@@ -864,6 +912,7 @@ const NAV_ICON_CARDS = `<svg width="28" height="28" viewBox="0 0 28 28" fill="no
   <rect x="4" y="5" width="13" height="17" rx="2.5" transform="rotate(-12 10.5 13.5)"/>
   <rect x="11" y="5" width="13" height="17" rx="2.5" transform="rotate(8 17.5 13.5)"/>
 </svg>`;
+let cloudProfiles = []; // real members loaded from Firestore
 const TAB_FOR_SCREEN = { discover: 'discover', matches: 'matches', chat: 'matches', events: 'events', eventAttendees: 'events', profile: 'profile' };
 
 function esc(s) {
@@ -895,7 +944,7 @@ function loadState() {
     const saved = store.getItem(STORAGE_KEY);
     if (saved) {
       const s = JSON.parse(saved);
-      Object.assign(state, s);
+      if (s && typeof s === 'object' && !Array.isArray(s)) Object.assign(state, s);
     }
   } catch (e) { console.warn('Could not load saved state', e); }
   // migrate / sanitize older saves
@@ -908,7 +957,9 @@ function loadState() {
   if (!Array.isArray(state.events) || !state.events.length) state.events = JSON.parse(JSON.stringify(DEFAULT_EVENTS));
   state.events.forEach((e, i) => { if (!e.id) e.id = 'e' + Date.now() + i; if (typeof e.going !== 'boolean') e.going = false; });
   if (state.user && state.loggedIn === undefined) state.loggedIn = true;
+  if (state.user && typeof state.user !== 'object') { state.user = null; state.loggedIn = false; }
   if (state.user && !Array.isArray(state.user.photos)) state.user.photos = [];
+  if (state.user && !Array.isArray(state.user.looking)) state.user.looking = [];
 }
 function saveState() {
   try {
@@ -1054,6 +1105,11 @@ function sheetMakeMain() {
 let currentSignupStep = 1;
 const SIGNUP_TITLES = ['Create your profile', 'Your sobriety', 'Add photos', 'What are you looking for?'];
 function startSignup() {
+  if (!window.CD || !window.CD.currentUser()) { clearAuthErrors(); showScreen('account'); return; }
+  beginProfileSteps();
+}
+function beginProfileSteps(prefill) {
+  if (prefill && prefill.name && !document.getElementById('name').value) document.getElementById('name').value = prefill.name;
   currentSignupStep = 1;
   signupPhotos = [];
   renderPhotoGrid('signup');
@@ -1105,8 +1161,11 @@ function completeSignup() {
   state.loggedIn = true;
   if (!saveState()) { state.user.photos = state.user.photos.slice(0, 1); saveState(); }
   updateProfileUI();
-  toast('Welcome to Clean Date, ' + state.user.name + '!');
   showScreen('discover');
+  if (!window.CD) { toast('Saved on this device only — cloud not ready'); return; }
+  window.CD.saveProfile(state.user, true)
+    .then(() => toast('Welcome to Clean Date, ' + state.user.name + '! Saved to cloud ✓'))
+    .catch(e => { console.error(e); toast('Could not save to cloud: ' + friendlyError(e)); });
 }
 
 /* ---------- Edit profile ---------- */
@@ -1145,8 +1204,12 @@ function saveEditProfile() {
   };
   state.loggedIn = true;
   if (!saveState()) { state.user = prev; return; }
-  toast('Profile updated');
   showScreen('profile');
+  if (!window.CD) { toast('Profile updated on this device only'); return; }
+  toast('Saving…');
+  window.CD.saveProfile(state.user, false)
+    .then(() => toast('Profile saved to cloud ✓'))
+    .catch(e => { console.error(e); toast('Could not save to cloud: ' + friendlyError(e)); });
 }
 
 const SOBER_PROGRESS = { 'Sober curious': 10, 'Under 6 months': 25, '6 months – 1 year': 45, '1–2 years': 65, '2–5 years': 85, '5+ years': 100 };
@@ -1191,7 +1254,7 @@ function kidsMatches(k, f) {
 function filteredProfiles() {
   const f = state.filters;
   const hidden = new Set(state.removed || []);
-  return profiles.filter(p => !hidden.has(p.name) && p.age >= (f.ageMin || 18) && p.age <= (f.ageMax || 99) && (!f.gender || p.gender === f.gender) && programMatches(p.program, f.program) && kidsMatches(p.kids, f.kids) && (!f.smoker || p.smoker === f.smoker));
+  return cloudProfiles.concat(profiles).filter(p => !hidden.has(p.name) && p.age >= (f.ageMin || 18) && p.age <= (f.ageMax || 99) && (!f.gender || p.gender === f.gender) && programMatches(p.program, f.program) && kidsMatches(p.kids, f.kids) && (!f.smoker || p.smoker === f.smoker));
 }
 function currentProfile() {
   const list = filteredProfiles();
@@ -1207,10 +1270,10 @@ function loadProfile() {
   document.getElementById('cardName').textContent = p.name + ', ' + p.age;
   document.getElementById('cardSober').textContent = p.sober;
   document.getElementById('bioText').textContent = p.bio;
-  document.getElementById('tags').innerHTML = p.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('');
+  document.getElementById('tags').innerHTML = (p.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join('');
   ['kids', 'height', 'smoker', 'job', 'location', 'program'].forEach(k => { document.getElementById(k).textContent = p[k] || '—'; });
   document.getElementById('cardGender').textContent = p.gender || '—';
-  document.getElementById('looking').textContent = p.looking.join(', ');
+  document.getElementById('looking').textContent = (p.looking || []).join(', ') || '—';
   const gallery = document.getElementById('photoGallery');
   card.style.backgroundImage = p.photos && p.photos.length ? cssUrl(p.photos[0]) : 'linear-gradient(135deg,#0d9488,#5eead4)';
   cardPhotoIdx = 0;
@@ -1248,11 +1311,11 @@ function swipeRight() {
   const already = state.matches.findIndex(m => m.name === p.name);
   const isMatch = window.__forceMatch !== undefined ? window.__forceMatch : Math.random() > 0.55;
   if (isMatch && already === -1) {
-    state.matches.push({ name: p.name, sober: p.sober, photo: p.photos[0] });
+    state.matches.push({ name: p.name, sober: p.sober, photo: (p.photos || [])[0] || '' });
     lastMatchIndex = state.matches.length - 1;
     saveState();
     document.getElementById('matchName').textContent = p.name;
-    document.getElementById('matchPhoto').style.backgroundImage = cssUrl(p.photos[0]);
+    document.getElementById('matchPhoto').style.backgroundImage = (p.photos || [])[0] ? cssUrl(p.photos[0]) : 'linear-gradient(135deg,#0d9488,#5eead4)';
     animateSwipe(true, false);
     setTimeout(() => document.getElementById('matchOverlay').classList.add('show'), 250);
   } else {
@@ -1808,22 +1871,112 @@ function resetFilters() {
   toast('Filters reset');
   showScreen('discover');
 }
-function doLogin() {
-  state.loggedIn = true;
-  saveState();
-  toast(state.user ? 'Welcome back, ' + state.user.name + '!' : 'Logged in');
-  showScreen('discover');
+/* ---------- Real accounts (Firebase Auth) ---------- */
+const AUTH_ERRORS = {
+  'auth/invalid-email': 'That email address doesn’t look right.',
+  'auth/missing-email': 'Please enter your email.',
+  'auth/missing-password': 'Please enter your password.',
+  'auth/user-not-found': 'No account with that email. Tap “Create an account”.',
+  'auth/wrong-password': 'Wrong email or password. Try again or reset your password.',
+  'auth/invalid-credential': 'Wrong email or password. Try again or reset your password.',
+  'auth/invalid-login-credentials': 'Wrong email or password. Try again or reset your password.',
+  'auth/email-already-in-use': 'An account with this email already exists. Try logging in instead.',
+  'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
+  'auth/too-many-requests': 'Too many tries. Please wait a few minutes and try again.',
+  'auth/network-request-failed': 'Network problem. Check your connection and try again.',
+  'auth/popup-closed-by-user': 'Google sign-in was closed before finishing.',
+  'auth/cancelled-popup-request': 'Google sign-in was cancelled.',
+  'auth/account-exists-with-different-credential': 'This email already uses a different sign-in method. Try email and password.',
+  'auth/unauthorized-domain': 'This website isn’t authorized for sign-in yet.',
+  'auth/operation-not-allowed': 'That sign-in method isn’t turned on yet.',
+  'auth/user-disabled': 'This account has been disabled.',
+  'permission-denied': 'The cloud refused the save (permissions). Please try again later.',
+  'unavailable': 'Can’t reach the cloud right now. Check your connection.'
+};
+function friendlyError(e) {
+  const code = (e && e.code) || '';
+  return AUTH_ERRORS[code] || AUTH_ERRORS[code.replace(/^firestore\//, '')] || (e && e.message ? e.message.replace(/^Firebase:\s*/, '') : 'Something went wrong. Please try again.');
 }
-function logout() {
+function setAuthError(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg || ''; }
+function clearAuthErrors() { setAuthError('loginError', ''); setAuthError('signupError', ''); }
+function setBusy(btnId, busy, label) {
+  const b = document.getElementById(btnId);
+  if (!b) return;
+  if (busy) { b.dataset.label = b.textContent; b.textContent = 'Please wait…'; b.disabled = true; }
+  else { b.textContent = label || b.dataset.label || b.textContent; b.disabled = false; }
+}
+function cdReady(errId) {
+  if (window.CD) return true;
+  setAuthError(errId, window.__cdLoadError ? 'Couldn’t load sign-in. Check your connection and reload.' : 'Still loading… try again in a second.');
+  return false;
+}
+async function doLogin() {
+  clearAuthErrors();
+  if (!cdReady('loginError')) return;
+  const email = val('loginEmail'), pw = document.getElementById('loginPassword').value;
+  if (!email || !pw) return setAuthError('loginError', 'Enter your email and password.');
+  setBusy('loginBtn', true);
+  try { await window.CD.login(email, pw); }
+  catch (e) { setAuthError('loginError', friendlyError(e)); }
+  finally { setBusy('loginBtn', false); }
+}
+async function createAccount() {
+  clearAuthErrors();
+  if (!cdReady('signupError')) return;
+  const email = val('signupEmail'), pw = document.getElementById('signupPassword').value;
+  if (!email || !pw) return setAuthError('signupError', 'Enter an email and a password.');
+  if (pw.length < 6) return setAuthError('signupError', 'Password needs at least 6 characters.');
+  setBusy('signupBtn', true);
+  try { await window.CD.signup(email, pw); }
+  catch (e) { setAuthError('signupError', friendlyError(e)); }
+  finally { setBusy('signupBtn', false); }
+}
+async function googleSignIn(errId) {
+  clearAuthErrors();
+  if (!cdReady(errId)) return;
+  try { await window.CD.google(); }
+  catch (e) { setAuthError(errId, friendlyError(e)); }
+}
+async function forgotPassword() {
+  clearAuthErrors();
+  if (!cdReady('loginError')) return;
+  const email = val('loginEmail');
+  if (!email) return setAuthError('loginError', 'Type your email above, then tap “Forgot password?” again.');
+  try { await window.CD.resetPassword(email); toast('Password reset email sent (check spam too)'); }
+  catch (e) { setAuthError('loginError', friendlyError(e)); }
+}
+async function logout() {
   if (!confirm('Log out?')) return;
-  state.loggedIn = false; // keep the saved profile so logging back in restores it
-  saveState();
-  showScreen('onboarding');
+  try { if (window.CD) await window.CD.logout(); } catch (e) { console.warn(e); }
+  // onAuthStateChanged handles clearing the cached profile and showing onboarding
+  if (!window.CD) { state.loggedIn = false; state.user = null; saveState(); showScreen('onboarding'); }
 }
 function resetDemo() {
-  if (!confirm('Erase all local Clean Date data?')) return;
+  if (!confirm('Clear the local cache on this device? Your cloud profile is kept.')) return;
   store.removeItem(STORAGE_KEY);
   location.reload();
+}
+function cloudRow(k, v) { return `<tr><td>${esc(k)}</td><td>${esc(v == null || v === '' ? '—' : v)}</td></tr>`; }
+async function refreshCloudPanel() {
+  const acct = document.getElementById('cloudAccount'), box = document.getElementById('cloudData');
+  if (!window.CD || !window.CD.currentUser()) { acct.textContent = 'Not signed in'; box.textContent = 'Sign in to see your saved profile.'; return; }
+  const u = window.CD.currentUser();
+  acct.textContent = 'Signed in as ' + (u.email || 'your Google account');
+  box.textContent = 'Loading…';
+  try {
+    const d = await window.CD.readProfile(u.uid);
+    if (!d) { box.textContent = 'No profile saved yet. Finish sign-up to create it.'; return; }
+    const ts = t => t && t.toDate ? t.toDate().toLocaleString() : (t || '');
+    const photoKb = (d.photos || []).map(p => Math.round(String(p).length / 1024) + ' KB').join(', ');
+    box.innerHTML = '<table class="cloud-table">' +
+      cloudRow('Name', d.name) + cloudRow('Age', d.age) + cloudRow('Gender', d.gender) + cloudRow('Location', d.location) +
+      cloudRow('Work', d.job) + cloudRow('Height', d.height) + cloudRow('Kids', d.kids) + cloudRow('Smoking', d.smoker) +
+      cloudRow('Still use', d.stillUse) +
+      cloudRow('Sober', d.sober) + cloudRow('Program', d.program) + cloudRow('Looking for', (d.looking || []).join(', ')) +
+      cloudRow('Bio', d.bio) + cloudRow('Photos', (d.photos || []).length + (photoKb ? ' (' + photoKb + ')' : '')) +
+      cloudRow('Joined', ts(d.createdAt)) + cloudRow('Last saved', ts(d.updatedAt)) +
+      '</table>';
+  } catch (e) { console.error(e); box.textContent = 'Could not read from cloud: ' + friendlyError(e); }
 }
 
 function createFloatingPhotos() {
@@ -1855,7 +2008,193 @@ loadState();
 createFloatingPhotos();
 renderPhotoGrid('signup');
 updateProfileUI();
-if (state.user && state.loggedIn) showScreen('discover');
+// Firebase decides which screen to show (see the module script below).
+if (state.user && state.loggedIn) document.getElementById('authLoading').classList.add('show');
+setTimeout(() => document.getElementById('authLoading').classList.remove('show'), 8000);
+const _origShowScreen = showScreen;
+showScreen = function (id) { _origShowScreen(id); if (id === 'settings') refreshCloudPanel(); };
+</script>
+<script type="module">
+// ---------- Clean Date: Firebase (Auth + Firestore) ----------
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
+  GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail,
+  sendEmailVerification, browserLocalPersistence, setPersistence } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCBCWeIuQGdHjDiOo6j-2dMKQyoWE7_-Kw",
+  authDomain: "clean-date-ee0d0.firebaseapp.com",
+  projectId: "clean-date-ee0d0",
+  storageBucket: "clean-date-ee0d0.firebasestorage.app",
+  messagingSenderId: "442116034974",
+  appId: "1:442116034974:web:d1b0726945c6c24f3b068f"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+const PROFILE_FIELDS = ['name','age','gender','location','job','height','kids','smoker','stillUse','sober','program','bio','looking'];
+const MAX_DOC_BYTES = 900 * 1024; // stay well under Firestore's 1 MiB doc limit
+
+// Shrink a data URL photo (photos are kept inside the Firestore doc for now).
+function shrinkDataUrl(url, max, quality) {
+  return new Promise(resolve => {
+    if (!url || !String(url).startsWith('data:image')) return resolve(url);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      const out = c.toDataURL('image/jpeg', quality);
+      resolve(out.length < url.length ? out : url);
+    };
+    img.onerror = () => resolve(url);
+    img.src = url;
+  });
+}
+async function cloudPhotos(photos) {
+  let list = (photos || []).slice(0, 6);
+  for (const [max, q] of [[600, 0.72], [480, 0.6], [360, 0.5]]) {
+    list = await Promise.all(list.map(p => shrinkDataUrl(p, max, q)));
+    if (list.reduce((n, p) => n + String(p).length, 0) <= MAX_DOC_BYTES - 20000) return list;
+  }
+  while (list.length && list.reduce((n, p) => n + String(p).length, 0) > MAX_DOC_BYTES - 20000) list.pop();
+  return list;
+}
+
+let profileExists = false;
+async function saveProfile(user, isNew) {
+  const u = auth.currentUser;
+  if (!u) throw Object.assign(new Error('Please log in again.'), { code: 'auth/no-user' });
+  const data = {};
+  PROFILE_FIELDS.forEach(k => { if (user[k] !== undefined) data[k] = user[k]; });
+  data.age = parseInt(data.age, 10) || null;
+  data.looking = Array.isArray(data.looking) ? data.looking : [];
+  data.stillUse = data.stillUse || '';
+  data.stillUseList = data.stillUse ? data.stillUse.split(', ').filter(Boolean) : [];
+  data.photos = await cloudPhotos(user.photos);
+  data.photoCount = data.photos.length;
+  data.visible = true;
+  data.updatedAt = serverTimestamp();
+  if (!profileExists || isNew) {
+    const snap = await getDoc(doc(db, 'users', u.uid)).catch(() => null);
+    if (!snap || !snap.exists() || !snap.data().createdAt) data.createdAt = serverTimestamp();
+  }
+  await setDoc(doc(db, 'users', u.uid), data, { merge: true });
+  profileExists = true;
+  if (data.photos.length < (user.photos || []).length) toast('Some photos were too big to save and were skipped');
+  return data;
+}
+async function readProfile(uid) {
+  const snap = await getDoc(doc(db, 'users', uid));
+  return snap.exists() ? snap.data() : null;
+}
+function toLocalUser(d) {
+  const u = {};
+  PROFILE_FIELDS.forEach(k => { u[k] = d[k] !== undefined ? d[k] : ''; });
+  if (!u.stillUse && Array.isArray(d.stillUseList)) u.stillUse = d.stillUseList.join(', ');
+  u.looking = Array.isArray(d.looking) ? d.looking : [];
+  u.photos = Array.isArray(d.photos) ? d.photos : [];
+  return u;
+}
+async function loadCloudMembers(myUid) {
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), limit(50)));
+    const list = [];
+    snap.forEach(ds => {
+      if (ds.id === myUid) return;
+      const d = ds.data();
+      if (!d || !d.name || d.visible === false || d.status === 'suspended') return;
+      const p = toLocalUser(d);
+      p.age = parseInt(p.age, 10) || 18;
+      p.sober = p.sober || 'Sober curious';
+      p.tags = ['Real member'].concat(Array.isArray(d.tags) ? d.tags : []);
+      p.uid = ds.id;
+      list.push(p);
+    });
+    cloudProfiles = list;
+    if (document.getElementById('discover').classList.contains('active')) loadProfile();
+  } catch (e) { console.warn('Could not load real members (sample profiles still shown):', e); }
+}
+
+function isMobile() { return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
+async function google() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    const fallback = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported'];
+    if (fallback.includes(e.code) || (isMobile() && e.code === 'auth/internal-error')) {
+      await signInWithRedirect(auth, provider);
+      return;
+    }
+    throw e;
+  }
+}
+async function signup(email, pw) {
+  const cred = await createUserWithEmailAndPassword(auth, email, pw);
+  sendEmailVerification(cred.user).catch(() => {});
+  return cred;
+}
+
+window.CD = {
+  currentUser: () => auth.currentUser,
+  login: (email, pw) => signInWithEmailAndPassword(auth, email, pw),
+  signup, google,
+  logout: () => signOut(auth),
+  resetPassword: email => sendPasswordResetEmail(auth, email),
+  saveProfile, readProfile
+};
+
+getRedirectResult(auth).catch(e => { setAuthError('loginError', friendlyError(e)); setAuthError('signupError', friendlyError(e)); });
+
+onAuthStateChanged(auth, async user => {
+  const loading = document.getElementById('authLoading');
+  if (!user) {
+    profileExists = false;
+    cloudProfiles = [];
+    if (state.user || state.loggedIn) { state.user = null; state.loggedIn = false; saveState(); updateProfileUI(); }
+    loading.classList.remove('show');
+    const cur = document.querySelector('.screen.active');
+    if (!cur || !['onboarding', 'login', 'account'].includes(cur.id)) showScreen('onboarding');
+    return;
+  }
+  loading.classList.add('show');
+  try {
+    const d = await readProfile(user.uid);
+    if (d && d.name) {
+      profileExists = true;
+      state.user = toLocalUser(d);
+      state.loggedIn = true;
+      saveState();
+      updateProfileUI();
+      clearAuthErrors();
+      toast('Welcome back, ' + state.user.name + '!');
+      showScreen('discover');
+    } else {
+      profileExists = !!d;
+      state.user = null; state.loggedIn = false; saveState(); updateProfileUI();
+      const cur = document.querySelector('.screen.active');
+      if (!cur || cur.id !== 'signup') beginProfileSteps({ name: (user.displayName || '').split(' ')[0] });
+      toast('Account ready — now build your profile');
+    }
+    loadCloudMembers(user.uid);
+  } catch (e) {
+    console.error(e);
+    toast('Signed in, but couldn’t load your cloud profile: ' + friendlyError(e));
+    if (state.user) showScreen('discover'); else beginProfileSteps({ name: (user.displayName || '').split(' ')[0] });
+  } finally {
+    loading.classList.remove('show');
+  }
+});
+</script>
+<script>
+// If the Firebase SDK failed to load (offline / blocked), say so instead of failing silently.
+setTimeout(() => { if (!window.CD) { window.__cdLoadError = true; console.warn('Firebase SDK not loaded'); } }, 10000);
 </script>
 </body>
 </html>
