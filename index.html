@@ -259,6 +259,15 @@ header .btn { flex-shrink: 0; }
 .sheet-bg.show { display:flex; }
 .sheet { background:#fff; width:100%; border-radius:24px 24px 0 0; padding:16px 18px calc(24px + env(safe-area-inset-bottom)); }
 .check-row { display:flex; align-items:center; gap:10px; padding:8px 0; font-size:16px; }
+.loc-ask { text-align:center; padding:8px 4px 0; }
+.loc-ask .loc-icon { font-size:56px; line-height:1; margin:8px 0 12px; }
+.loc-ask h3 { font-size:22px; font-weight:800; margin-bottom:8px; }
+.loc-ask p { color:var(--muted); font-size:15px; line-height:1.45; margin-bottom:14px; }
+.loc-ok { background:#ecfdf5; color:#047857; border-radius:14px; padding:12px 14px; font-weight:600; margin:4px 0 14px; }
+.loc-err { text-align:left; background:#fef2f2; color:#991b1b; border-radius:14px; padding:14px; margin:4px 0 14px; font-size:14px; line-height:1.45; }
+.loc-err strong { display:block; font-size:15px; margin-bottom:6px; }
+.loc-err ol { margin:6px 0 0 18px; padding:0; }
+.loc-err li { margin:3px 0; }
 .check-row input { width:20px; height:20px; accent-color: var(--accent); }
 #chat .content { padding-bottom: calc(200px + env(safe-area-inset-bottom)); }
 .composer { position:absolute; left:0; right:0; bottom:calc(72px + env(safe-area-inset-bottom)); padding:8px 16px 10px; background:rgba(248,250,252,.96); backdrop-filter:blur(12px); border-top:1px solid rgba(0,0,0,.04); z-index:15; }
@@ -494,10 +503,10 @@ header .btn { flex-shrink: 0; }
     <header>
       <button class="icon-btn" onclick="signupPrev()">←</button>
       <div class="logo" id="signupTitle">Create your profile</div>
-      <div id="signupStepLabel" style="font-size:13px; color:var(--muted); flex-shrink:0;">1 / 4</div>
+      <div id="signupStepLabel" style="font-size:13px; color:var(--muted); flex-shrink:0;">1 / 5</div>
     </header>
     <div class="content">
-      <div class="progress" style="margin:0 0 16px;"><div class="progress-bar" id="signupProgress" style="width:25%; transition:width .3s;"></div></div>
+      <div class="progress" style="margin:0 0 16px;"><div class="progress-bar" id="signupProgress" style="width:20%; transition:width .3s;"></div></div>
       <div id="signupStep1">
         <input class="input" id="name" placeholder="First name">
         <input class="input" id="age" type="number" placeholder="Age" min="18">
@@ -537,7 +546,18 @@ header .btn { flex-shrink: 0; }
         <label class="check-row"><input type="checkbox" class="intent-cb" value="Long-term"> Long-term</label>
         <label class="check-row"><input type="checkbox" class="intent-cb" value="Friendship"> Friendship</label>
         <textarea class="input" id="bioInput" placeholder="Share a bit about your recovery journey and what you're looking for..." rows="3" style="margin-top:8px;"></textarea>
-        <button class="btn" onclick="completeSignup()">Finish & Start Matching</button>
+        <button class="btn" onclick="signupNext(4)">Continue</button>
+      </div>
+      <div id="signupStep5" style="display:none;">
+        <div class="loc-ask">
+          <div class="loc-icon">📍</div>
+          <h3>Turn on your location</h3>
+          <p>Clean Date uses your location to show you sober singles nearby and how far away they are. Your exact spot is never shown. Others only see your city and a rough distance.</p>
+          <div id="locStatus"></div>
+          <button class="btn" id="allowLocationBtn" onclick="requestSignupLocation()">📍 Allow location</button>
+          <button class="btn" id="finishSignupBtn" onclick="completeSignup()" style="display:none;">Finish & Start Matching</button>
+          <p style="font-size:13px; margin-top:10px;">Location is required to create an account.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -1215,7 +1235,8 @@ function sheetMakeMain() {
 
 /* ---------- Signup ---------- */
 let currentSignupStep = 1;
-const SIGNUP_TITLES = ['Create your profile', 'Your sobriety', 'Add photos', 'What are you looking for?'];
+const SIGNUP_STEPS = 5;
+const SIGNUP_TITLES = ['Create your profile', 'Your sobriety', 'Add photos', 'What are you looking for?', 'Your location'];
 function startSignup() {
   if (!window.CD || !window.CD.currentUser()) { clearAuthErrors(); showScreen('account'); return; }
   beginProfileSteps();
@@ -1224,16 +1245,17 @@ function beginProfileSteps(prefill) {
   if (prefill && prefill.name && !document.getElementById('name').value) document.getElementById('name').value = prefill.name;
   currentSignupStep = 1;
   signupPhotos = [];
+  signupGeo = null; renderSignupLocation();
   renderPhotoGrid('signup');
   updateSignupStep();
   showScreen('signup');
 }
 function updateSignupStep() {
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= SIGNUP_STEPS; i++) {
     document.getElementById('signupStep' + i).style.display = (i === currentSignupStep) ? 'block' : 'none';
   }
-  document.getElementById('signupStepLabel').textContent = currentSignupStep + ' / 4';
-  document.getElementById('signupProgress').style.width = (currentSignupStep * 25) + '%';
+  document.getElementById('signupStepLabel').textContent = currentSignupStep + ' / ' + SIGNUP_STEPS;
+  document.getElementById('signupProgress').style.width = (currentSignupStep * 100 / SIGNUP_STEPS) + '%';
   document.getElementById('signupTitle').textContent = SIGNUP_TITLES[currentSignupStep - 1];
   document.querySelector('#signup .content').scrollTop = 0;
 }
@@ -1248,12 +1270,70 @@ function signupNext(from) {
   updateSignupStep();
   if (currentSignupStep === 3) renderPhotoGrid('signup');
 }
+/* ---------- Sign-up location (required; only asked when the button is tapped) ---------- */
+let signupGeo = null, signupGeoErr = null, signupGeoBusy = false;
+function renderSignupLocation() {
+  const st = document.getElementById('locStatus'), allow = document.getElementById('allowLocationBtn'), fin = document.getElementById('finishSignupBtn');
+  if (!st) return;
+  if (signupGeo) {
+    st.innerHTML = '<div class="loc-ok">✓ Location is on. You’re all set.</div>';
+    allow.style.display = 'none'; fin.style.display = '';
+    return;
+  }
+  fin.style.display = 'none'; allow.style.display = '';
+  allow.disabled = signupGeoBusy;
+  allow.textContent = signupGeoBusy ? 'Getting your location…' : (signupGeoErr ? '↻ Try again' : '📍 Allow location');
+  if (!signupGeoErr) { st.innerHTML = ''; return; }
+  const steps = '<ol><li><b>Android (Chrome):</b> tap the lock icon by the address bar, then <b>Permissions</b>, then <b>Location</b>, and choose <b>Allow</b>.</li>' +
+    '<li><b>iPhone (Safari):</b> open the <b>Settings</b> app, then <b>Privacy &amp; Security</b>, then <b>Location Services</b>. Turn it on and set <b>Safari Websites</b> to <b>While Using</b>.</li>' +
+    '<li>Make sure your phone’s Location is turned on, then tap <b>Try again</b>.</li></ol>';
+  const head = signupGeoErr === 'denied' ? 'Location is required to use Clean Date'
+    : signupGeoErr === 'unsupported' ? 'This browser can’t share your location'
+    : 'We couldn’t get your location';
+  const lead = signupGeoErr === 'denied' ? 'Location access was blocked. To turn it on:'
+    : signupGeoErr === 'unsupported' ? 'Please open Clean Date in Chrome or Safari on your phone. Location is required to create an account.'
+    : 'Location is required to create an account. Check that it’s on:';
+  st.innerHTML = `<div class="loc-err" role="alert"><strong>${head}</strong>${lead}${signupGeoErr === 'unsupported' ? '' : steps}</div>`;
+}
+function requestSignupLocation() {
+  if (signupGeoBusy) return;
+  if (!navigator.geolocation || (window.isSecureContext === false)) { signupGeoErr = 'unsupported'; renderSignupLocation(); return; }
+  signupGeoBusy = true; signupGeoErr = null; renderSignupLocation();
+  navigator.geolocation.getCurrentPosition(pos => {
+    signupGeoBusy = false;
+    // rounded to ~1 km so a member's exact home spot is never stored or shared
+    signupGeo = { lat: +pos.coords.latitude.toFixed(2), lng: +pos.coords.longitude.toFixed(2) };
+    renderSignupLocation();
+    fillCityFromCoords(signupGeo);
+  }, err => {
+    signupGeoBusy = false; signupGeo = null;
+    signupGeoErr = err && err.code === 1 ? 'denied' : 'failed';
+    renderSignupLocation();
+  }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
+}
+// If the City box was left blank, fill City/State from the coordinates (one light Nominatim lookup). Never overwrites typed values.
+async function fillCityFromCoords(g) {
+  const cityEl = document.getElementById('locationInput'), stEl = document.getElementById('stateInput');
+  if (!g || cityEl.value.trim()) return;
+  try {
+    const q = new URLSearchParams({ format: 'jsonv2', lat: g.lat, lon: g.lng, zoom: '10', addressdetails: '1' });
+    const r = await fetch('https://nominatim.openstreetmap.org/reverse?' + q.toString(), { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) return;
+    const a = ((await r.json()) || {}).address || {};
+    const city = a.city || a.town || a.village || a.hamlet || a.municipality || '';
+    if (!city || cityEl.value.trim()) return;
+    cityEl.value = city;
+    const code = a.country_code === 'us' ? (US_STATES.find(x => x[1] === a.state) || [])[0] : (a.country_code ? 'Outside the US' : '');
+    if (code && !stEl.value) stEl.value = code;
+  } catch (e) { console.warn('Could not look up your city', e && e.message); }
+}
 function signupPrev() {
   if (currentSignupStep > 1) { currentSignupStep--; updateSignupStep(); }
   else showScreen('onboarding');
 }
 function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 function completeSignup() {
+  if (!signupGeo) { currentSignupStep = SIGNUP_STEPS; updateSignupStep(); renderSignupLocation(); return toast('Please allow location to finish creating your account'); }
   state.user = {
     name: val('name') || 'You',
     age: parseInt(val('age'), 10) || 27,
@@ -1270,6 +1350,7 @@ function completeSignup() {
     bio: val('bioInput'),
     looking: Array.from(document.querySelectorAll('.intent-cb:checked')).map(cb => cb.value)
   };
+  state.user.lat = signupGeo.lat; state.user.lng = signupGeo.lng; state.user.geoLoc = state.user.location; state.user.geoSrc = 'device';
   state.loggedIn = true;
   if (!saveState()) { state.user.photos = state.user.photos.slice(0, 1); saveState(); }
   updateProfileUI();
