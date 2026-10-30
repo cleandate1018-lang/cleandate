@@ -286,8 +286,14 @@ header .btn { flex-shrink: 0; }
 .tool-btn:active { transform:scale(.94); }
 .tool-btn.on { background:var(--accent-soft); color:var(--accent-dark); }
 .send-btn { width:auto; flex-shrink:0; padding:12px 16px; margin:0; }
-.emoji-picker { display:none; grid-template-columns:repeat(auto-fill, minmax(40px, 1fr)); gap:2px; max-height:184px; overflow-y:auto; background:#fff; border:1px solid var(--border); border-radius:16px; padding:8px; margin-bottom:8px; box-shadow:0 6px 20px rgba(0,0,0,.08); }
-.emoji-picker.show { display:grid; }
+.emoji-picker { display:none; background:#fff; border:1px solid var(--border); border-radius:16px; padding:6px 8px 8px; margin-bottom:8px; box-shadow:0 6px 20px rgba(0,0,0,.08); }
+.emoji-picker.show { display:block; }
+.emoji-tabs { display:flex; gap:2px; overflow-x:auto; border-bottom:1px solid var(--border); padding-bottom:4px; scrollbar-width:none; }
+.emoji-tabs::-webkit-scrollbar { display:none; }
+.emoji-tabs .emoji-tab { flex:1 0 34px; height:34px; font-size:20px; opacity:.55; border-radius:10px; }
+.emoji-tabs .emoji-tab.on { opacity:1; background:var(--accent-soft); }
+.emoji-cat-name { font-size:12px; font-weight:700; color:var(--muted); margin:6px 2px 2px; }
+.emoji-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(40px, 1fr)); gap:2px; height:196px; overflow-y:auto; align-content:start; }
 .emoji-picker button { background:none; border:none; font-size:24px; line-height:1; height:40px; border-radius:10px; cursor:pointer; padding:0; }
 .emoji-picker button:active { background:#f1f5f9; }
 .chat-bubble.photo { padding:4px; background:transparent; border:none; }
@@ -1527,16 +1533,27 @@ document.getElementById('chatInput').addEventListener('keydown', e => {
 
 
 /* ---------- Chat: emoji picker ---------- */
-const EMOJIS = ['😊','😂','🤣','😍','🥰','😘','😎','🤩','🥳','😇','😅','🙈','😭','🤯','🤔','😴',
-  '❤️','💖','💕','💙','💚','💜','🧡','💛','👍','👏','🙌','🤝','💪','🙏','✌️','🤞',
-  '🔥','✨','⭐','🌟','💯','🎉','🎈','🏆','🌿','☕','🍵','🧋','🍕','🌮','🍣','🍰',
-  '🏃','🚴','🧘','🏋️','⚽','🏀','🎾','🧗','🥾','🎲','🎨','🎵','📖','🎬','🌅','🌲',
-  '🌸','🌻','🌈','☀️','🌙','🐶','🐱','🦊','🐼','🐰','💬','👀','👋','🫶','🤗','😌'];
+const EMOJI_CATS = [["🕘", "Recent", []], ["😊", "Smileys", ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "🥲", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🫣", "🤗", "🫡", "🤔", "🫢", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🫠", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮\u200d💨", "😵", "😵\u200d💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👻", "💀", "🤡", "💩", "🤖", "👽", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🙈", "🙉", "🙊"]], ["❤️", "Love", ["❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "🩷", "🩵", "🩶", "❤️\u200d🔥", "❤️\u200d🩹", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "💌", "💋", "🌹", "💐", "🫶", "😍", "🥰", "😘", "💑", "💏", "👩\u200d❤️\u200d👨", "👨\u200d❤️\u200d👨", "👩\u200d❤️\u200d👩", "💍", "🫦", "💯", "💢", "💥", "💫", "💦", "💨", "🕊️"]], ["👋", "Gestures", ["👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🫰", "🤟", "🤘", "🤙", "👈", "👉", "👆", "👇", "☝️", "👍", "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏", "✍️", "💅", "🤳", "💪", "🦾", "👀", "👁️", "👅", "👄", "🧠", "🫀", "🙋", "🙆", "🙅", "🤷", "🤦", "🙇", "💁", "🧏", "🕺", "💃", "👯", "🧑\u200d🤝\u200d🧑", "👫", "👭", "👬"]], ["🍕", "Food & Drink", ["☕", "🍵", "🧋", "🧃", "🥤", "🧉", "🥛", "🍼", "🫖", "💧", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🥑", "🥦", "🥕", "🌽", "🌶️", "🥐", "🥯", "🍞", "🧀", "🥚", "🍳", "🥞", "🧇", "🥓", "🍔", "🍟", "🍕", "🌭", "🥪", "🌮", "🌯", "🥗", "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🥟", "🍤", "🍙", "🍚", "🍦", "🍧", "🍨", "🍩", "🍪", "🎂", "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "🍿"]], ["⚽", "Activities", ["🏃", "🚶", "🧗", "🚴", "🏊", "🏄", "🧘", "🏋️", "🤸", "⛹️", "🤾", "🏌️", "🏇", "⛷️", "🏂", "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🏓", "🏸", "🏒", "🥊", "🥋", "⛳", "🎣", "🛹", "🛼", "⛸️", "🎿", "🥾", "🏕️", "⛺", "🎯", "🎳", "🎮", "🕹️", "🎲", "♟️", "🧩", "🎨", "🖌️", "🎭", "🎬", "🎤", "🎧", "🎵", "🎶", "🎸", "🎹", "🥁", "🎻", "🎷", "📖", "📚", "✏️", "📷", "🧶", "🪴", "🏆", "🥇", "🥈", "🥉", "🏅", "🎖️", "🎉", "🎊", "🎈", "🎁"]], ["🌿", "Nature", ["🌞", "☀️", "🌤️", "⛅", "🌥️", "🌦️", "🌧️", "⛈️", "🌩️", "❄️", "☃️", "⛄", "🌬️", "🌈", "☔", "🌊", "🌙", "🌛", "⭐", "🌟", "✨", "⚡", "🔥", "🌍", "🌎", "🌏", "🌋", "🏔️", "⛰️", "🏞️", "🌅", "🌄", "🌇", "🌆", "🌃", "🌌", "🌵", "🌲", "🌳", "🌴", "🌱", "🌿", "☘️", "🍀", "🍃", "🍂", "🍁", "🍄", "🌾", "💐", "🌷", "🌹", "🥀", "🌺", "🌸", "🌼", "🌻", "🪷"]], ["🐶", "Animals", ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🦆", "🦅", "🦉", "🐺", "🐴", "🦄", "🐝", "🦋", "🐌", "🐞", "🐢", "🐍", "🦎", "🐙", "🦑", "🦀", "🐠", "🐟", "🐡", "🐬", "🐳", "🐋", "🦈", "🦭", "🐊", "🐅", "🐆", "🦓", "🦍", "🐘", "🦒", "🦘", "🐕", "🐩", "🦮", "🐈", "🐈\u200d⬛", "🐇", "🦔", "🦦", "🦥", "🐿️", "🐾"]], ["✈️", "Travel", ["🚗", "🚕", "🚙", "🛻", "🚌", "🏎️", "🚓", "🚑", "🚒", "🛵", "🏍️", "🚲", "🛴", "🚂", "🚆", "🚇", "✈️", "🛫", "🛬", "🚁", "🚀", "🛸", "⛵", "🚤", "🛳️", "⚓", "🗺️", "🧭", "🏠", "🏡", "🏢", "🏬", "🏥", "🏦", "🏨", "🏫", "⛪", "🕌", "🛕", "🏛️", "🗽", "🗼", "🏰", "🎡", "🎢", "🎠", "⛲", "🏖️", "🏝️", "🏜️", "🌁", "🌉", "🧳", "📍", "🎫"]], ["💡", "Objects", ["📱", "💻", "⌚", "📸", "🎥", "📞", "⏰", "⌛", "💡", "🔦", "🕯️", "💸", "💵", "💳", "🎁", "🎀", "🧸", "🪩", "🛍️", "📦", "✉️", "📩", "📝", "📅", "📌", "📎", "✂️", "🔒", "🔑", "🗝️", "🛏️", "🛋️", "🪑", "🚿", "🛁", "🧴", "🧼", "🪥", "💊", "🩹", "🩺", "🧬", "🔮", "🧿", "🪬", "☮️", "☯️", "🕉️", "✝️", "☪️", "✡️", "🔆", "♻️", "✅", "❌", "❓", "❗", "💤", "💬", "💭", "🗯️", "🆗", "🆒", "🆕", "🆓", "🔝", "🔜"]]];
+function recentEmojis() { try { return JSON.parse(localStorage.getItem('cleandate_recent_emoji') || '[]'); } catch (e) { return []; } }
+function rememberEmoji(e) { try { const r = recentEmojis().filter(x => x !== e); r.unshift(e); localStorage.setItem('cleandate_recent_emoji', JSON.stringify(r.slice(0, 32))); } catch (_) {} }
+let emojiCat = -1;
 function buildEmojiPicker() {
   const p = document.getElementById('emojiPicker');
   if (p.childElementCount) return;
-  p.innerHTML = EMOJIS.map(e => `<button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('${e}')" aria-label="${e}">${e}</button>`).join('');
+  p.innerHTML = '<div class="emoji-tabs">' + EMOJI_CATS.map((c, i) => `<button type="button" class="emoji-tab" data-i="${i}" onmousedown="event.preventDefault()" onclick="showEmojiCat(${i})" aria-label="${c[1]}" title="${c[1]}">${c[0]}</button>`).join('') + '</div><div class="emoji-cat-name" id="emojiCatName"></div><div class="emoji-grid" id="emojiGrid"></div>';
+  showEmojiCat(recentEmojis().length ? 0 : 1);
 }
+function showEmojiCat(i) {
+  emojiCat = i;
+  const list = i === 0 ? recentEmojis() : EMOJI_CATS[i][2];
+  document.getElementById('emojiCatName').textContent = EMOJI_CATS[i][1];
+  document.getElementById('emojiGrid').innerHTML = list.length
+    ? list.map(e => `<button type="button" onmousedown="event.preventDefault()" onclick="pickEmoji(this.textContent)" aria-label="${e}">${e}</button>`).join('')
+    : '<div class="muted" style="grid-column:1/-1; padding:10px; font-size:13px;">Emojis you use will show up here.</div>';
+  document.getElementById('emojiGrid').scrollTop = 0;
+  document.querySelectorAll('.emoji-tab').forEach(b => b.classList.toggle('on', +b.dataset.i === i));
+}
+function pickEmoji(e) { insertEmoji(e); rememberEmoji(e); }
 function toggleEmoji(force) {
   const p = document.getElementById('emojiPicker');
   buildEmojiPicker();
