@@ -247,6 +247,7 @@ header .btn { flex-shrink: 0; }
 .nav button.active { background: var(--accent-soft); }
 .toast { position:absolute; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translate(-50%,20px); background:#0f172a; color:#fff; padding:12px 18px; border-radius:999px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:all .25s; z-index:100; white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,.25); }
 .toast.show { opacity:1; transform:translate(-50%,0); }
+.call-screen.show ~ .toast { bottom:auto; top:58%; }
 .empty { text-align:center; padding:48px 24px; color:var(--muted); }
 .empty .em { font-size:48px; margin-bottom:12px; }
 .empty h3 { color:var(--text); font-size:18px; margin-bottom:6px; }
@@ -350,6 +351,18 @@ header .btn { flex-shrink: 0; }
 .call-screen.video .call-top { text-align:left; padding:calc(52px + env(safe-area-inset-top)) 136px 0 22px; }
 .call-screen.video .call-name { font-size:26px; }
 .call-tg, .call-end, .tool-btn, .emoji-picker button, .chat-actions .icon-btn { -webkit-tap-highlight-color: transparent; }
+.call-remote video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; background:#0f172a; }
+.call-screen.has-remote .call-remote video { display:block; }
+.call-screen.has-remote .call-remote::after { background:linear-gradient(rgba(15,23,42,.5), rgba(15,23,42,0) 26%, rgba(15,23,42,0) 66%, rgba(15,23,42,.65)); }
+.call-incoming { display:none; gap:80px; justify-content:center; }
+.call-screen.incoming .call-incoming { display:flex; }
+.call-screen.incoming .call-toggles, .call-screen.incoming .call-end { display:none; }
+.call-ans { display:flex; flex-direction:column; align-items:center; gap:10px; background:none; border:none; color:#fff; font-size:13px; font-weight:600; cursor:pointer; padding:0; -webkit-tap-highlight-color:transparent; }
+.call-ans .c { width:72px; height:72px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+.call-ans:active .c { transform:scale(.94); }
+.call-ans.decline .c { background:var(--danger); }
+.call-ans.accept .c { background:#22c55e; animation:ansPulse 1.4s infinite; }
+@keyframes ansPulse { 0% { box-shadow:0 0 0 0 rgba(34,197,94,.6); } 70% { box-shadow:0 0 0 20px rgba(34,197,94,0); } 100% { box-shadow:0 0 0 0 rgba(34,197,94,0); } }
 .logo.brand { position:relative; display:inline-flex; align-items:center; overflow:visible; padding-left:12px; isolation:isolate; }
 .logo.brand span { position:relative; z-index:1; }
 .logo-heart { position:absolute; left:0; top:50%; width:34px; height:31px; transform:translateY(-54%) rotate(-10deg); fill:#99f6e4; opacity:.55; z-index:0; pointer-events:none; }
@@ -956,7 +969,8 @@ header .btn { flex-shrink: 0; }
   </div>
   <!-- Voice / video call (mock) -->
   <div class="call-screen" id="callScreen" aria-modal="true" role="dialog">
-    <div class="call-remote" id="callRemote"></div>
+    <div class="call-remote" id="callRemote"><video id="remoteVideo" autoplay playsinline></video></div>
+    <audio id="remoteAudio" autoplay></audio>
     <div class="self-view" id="selfView">
       <video id="selfVideo" autoplay muted playsinline></video>
       <div class="self-ph" id="selfPh"><span style="font-size:22px;">📷</span><span id="selfPhText">Camera off</span></div>
@@ -972,6 +986,10 @@ header .btn { flex-shrink: 0; }
         <button class="call-tg" id="tgMute" onclick="callToggle('mute')"><span class="c"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></span><span class="l">Mute</span></button>
         <button class="call-tg" id="tgCam" onclick="callToggle('cam')"><span class="c"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span><span class="l">Camera</span></button>
         <button class="call-tg" id="tgSpk" onclick="callToggle('spk')"><span class="c"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span><span class="l">Speaker</span></button>
+      </div>
+      <div class="call-incoming">
+        <button class="call-ans decline" id="declineCallBtn" onclick="declineCall()" aria-label="Decline call"><span class="c"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .4-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85a1 1 0 0 1-1.4-.02L.29 13.08a1 1 0 0 1 0-1.41C3.34 8.77 7.46 7 12 7s8.66 1.77 11.71 4.67a1 1 0 0 1 0 1.41l-2.48 2.48a1 1 0 0 1-1.4.02 11.3 11.3 0 0 0-2.67-1.85 1 1 0 0 1-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg></span><span class="l">Decline</span></button>
+        <button class="call-ans accept" id="acceptCallBtn" onclick="acceptCall()" aria-label="Accept call"><span class="c"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><span class="l">Accept</span></button>
       </div>
       <button class="call-end" id="endCallBtn" onclick="endCall()" aria-label="End call"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .4-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85a1 1 0 0 1-1.4-.02L.29 13.08a1 1 0 0 1 0-1.41C3.34 8.77 7.46 7 12 7s8.66 1.77 11.71 4.67a1 1 0 0 1 0 1.41l-2.48 2.48a1 1 0 0 1-1.4.02 11.3 11.3 0 0 0-2.67-1.85 1 1 0 0 1-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg></button>
     </div>
@@ -2324,7 +2342,7 @@ function closeViewer() { document.getElementById('photoViewer').classList.remove
 })();
 
 /* ---------- Voice / video calls (mock) ---------- */
-const call = { active: false, kind: null, id: 0, stream: null, timer: null, connectT: null, started: 0, mute: false, cam: true, spk: false, name: '' };
+const call = { active: false, kind: null, id: 0, stream: null, timer: null, connectT: null, started: 0, mute: false, cam: true, spk: false, name: '', real: false, incoming: false, reconnecting: false };
 function fmtDur(sec) { const m = Math.floor(sec / 60), s = sec % 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
 function stopCallStream() {
   if (call.stream) { call.stream.getTracks().forEach(t => { try { t.stop(); } catch (_) {} }); call.stream = null; }
@@ -2365,21 +2383,27 @@ async function startSelfCamera(id) {
     setSelfPlaceholder(e && e.name === 'NotAllowedError' ? 'Camera blocked' : 'Camera unavailable');
   }
 }
+function openCallScreen(m, kind, status, incoming) {
+  const scr = document.getElementById('callScreen');
+  scr.classList.toggle('video', kind === 'video' && !incoming);
+  scr.classList.toggle('incoming', !!incoming);
+  scr.classList.remove('connected', 'has-remote');
+  document.getElementById('callAvatar').style.backgroundImage = m.photo ? cssUrl(m.photo) : '';
+  document.getElementById('callRemote').style.backgroundImage = m.photo ? cssUrl(m.photo) : '';
+  document.getElementById('callName').textContent = m.name;
+  document.getElementById('callStatus').textContent = status;
+  document.getElementById('callKind').textContent = incoming ? (kind === 'video' ? 'Incoming Clean Date video call' : 'Incoming Clean Date voice call') : (kind === 'video' ? 'Clean Date video call' : 'Clean Date voice call');
+  renderCallToggles();
+  scr.classList.add('show');
+}
 function startCall(kind) {
   const m = state.matches[activeChat];
   if (!m || call.active) return;
   toggleEmoji(false);
-  Object.assign(call, { active: true, kind, id: call.id + 1, started: 0, mute: false, cam: true, spk: kind === 'video', name: m.name, mid: m.rt ? m.mid : null });
+  if (m.rt) return startRealCall(m, kind);
+  Object.assign(call, { active: true, real: false, incoming: false, kind, id: call.id + 1, started: 0, mute: false, cam: true, spk: kind === 'video', name: m.name, mid: null });
+  openCallScreen(m, kind, 'Calling…', false);
   const scr = document.getElementById('callScreen');
-  scr.classList.toggle('video', kind === 'video');
-  scr.classList.remove('connected');
-  document.getElementById('callAvatar').style.backgroundImage = cssUrl(m.photo);
-  document.getElementById('callRemote').style.backgroundImage = cssUrl(m.photo);
-  document.getElementById('callName').textContent = m.name;
-  document.getElementById('callStatus').textContent = 'Calling…';
-  document.getElementById('callKind').textContent = kind === 'video' ? 'Clean Date video call' : 'Clean Date voice call';
-  renderCallToggles();
-  scr.classList.add('show');
   const id = call.id;
   if (kind === 'video') startSelfCamera(id);
   call.connectT = setTimeout(() => {
@@ -2393,6 +2417,7 @@ function startCall(kind) {
 }
 function callToggle(which) {
   if (!call.active) return;
+  if (call.real) return realCallToggle(which);
   if (which === 'mute') call.mute = !call.mute;
   if (which === 'spk') call.spk = !call.spk;
   if (which === 'cam') {
@@ -2408,6 +2433,7 @@ function callToggle(which) {
 }
 function endCall() {
   if (!call.active) return;
+  if (call.real) return endRealCall();
   const secs = call.started ? Math.max(1, Math.floor((Date.now() - call.started) / 1000)) : 0;
   clearTimeout(call.connectT); clearInterval(call.timer);
   call.timer = call.connectT = null;
@@ -2422,7 +2448,211 @@ function endCall() {
   if (document.getElementById('chat').classList.contains('active')) renderChat();
   toast(secs ? 'Call ended' : 'Call cancelled');
 }
-window.addEventListener('pagehide', stopCallStream);
+/* ---------- Real voice / video calls UI (real matches only; the WebRTC engine is CD.call in the module script) ---------- */
+const ring = { t: null, vib: null, ctx: null, beeps: 0 };
+function callAudioCtx() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!ring.ctx) ring.ctx = new AC();
+    if (ring.ctx.state === 'suspended') ring.ctx.resume().catch(() => {});
+    return ring.ctx;
+  } catch (e) { return null; }
+}
+// Browsers only allow sound after a tap, so unlock audio on the first tap once real calls are possible.
+document.addEventListener('pointerdown', () => { if (RT.on && !ring.ctx) callAudioCtx(); }, true);
+function ringBurst() {
+  const c = callAudioCtx();
+  if (!c) return;
+  ring.beeps++;
+  try {
+    const t0 = c.currentTime + 0.02, g = c.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.14, t0 + 0.05);
+    g.gain.setValueAtTime(0.14, t0 + 1.75);
+    g.gain.linearRampToValueAtTime(0, t0 + 1.9);
+    g.connect(c.destination);
+    [440, 480].forEach(f => { const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f; o.connect(g); o.start(t0); o.stop(t0 + 1.95); });
+  } catch (e) {}
+}
+function ringStart() {
+  ringStop();
+  ringBurst();
+  ring.t = setInterval(ringBurst, 4000);
+  if (navigator.vibrate) {
+    const v = () => { try { navigator.vibrate([800, 400, 800]); } catch (e) {} };
+    v(); ring.vib = setInterval(v, 4000);
+  }
+}
+function ringStop() {
+  clearInterval(ring.t); clearInterval(ring.vib);
+  ring.t = ring.vib = null;
+  try { if (navigator.vibrate) navigator.vibrate(0); } catch (e) {}
+}
+function callRemoteEl() { return document.getElementById(call.kind === 'video' ? 'remoteVideo' : 'remoteAudio'); }
+function playRemote() {
+  const el = callRemoteEl();
+  if (!el || !el.srcObject) return;
+  const p = el.play();
+  if (p && p.catch) p.catch(() => { // autoplay blocked: play on the next tap
+    document.addEventListener('pointerdown', () => { try { el.play().catch(() => {}); } catch (e) {} }, { once: true, capture: true });
+  });
+}
+async function applySpeaker() {
+  const el = callRemoteEl();
+  if (!el || typeof el.setSinkId !== 'function' || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+  try {
+    const outs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audiooutput');
+    const spk = outs.find(d => /speaker/i.test(d.label));
+    const comm = outs.find(d => d.deviceId === 'communications');
+    await el.setSinkId(call.spk ? (spk ? spk.deviceId : 'default') : (comm ? 'communications' : 'default'));
+  } catch (e) {}
+}
+function callTick() {
+  if (!call.active || !call.started) return;
+  document.getElementById('callStatus').textContent = call.reconnecting ? 'Reconnecting…' : fmtDur(Math.floor((Date.now() - call.started) / 1000));
+}
+function closeCallScreen() {
+  ringStop();
+  clearTimeout(call.connectT); clearInterval(call.timer);
+  call.timer = call.connectT = null;
+  stopCallStream();
+  ['remoteVideo', 'remoteAudio'].forEach(id => { const el = document.getElementById(id); if (el) { try { el.pause(); } catch (e) {} el.srcObject = null; } });
+  call.active = false; call.real = false; call.incoming = false; call.reconnecting = false; call.started = 0;
+  call.id++;
+  document.getElementById('callScreen').classList.remove('show', 'connected', 'video', 'incoming', 'has-remote');
+}
+function callFailMessage(e) {
+  const code = (e && e.code) || '';
+  if (code === 'media-denied') {
+    const what = call.kind === 'video' || (e && e.kind === 'video') ? 'microphone and camera' : 'microphone';
+    openActionSheet(`<div class="grab"></div><h3>Allow your ${what}</h3><p class="sub" id="mediaDeniedMsg">Clean Date needs your ${what} for calls. It was blocked, so the call couldn’t start.</p>
+      <p class="sub" style="text-align:left;">• In the Clean Date app: phone <b>Settings → Apps → Clean Date → Permissions</b>, allow Microphone${what.includes('camera') ? ' and Camera' : ''}.<br>• In Chrome: tap the icon left of the address bar → <b>Permissions</b> → allow, then reload.</p>
+      <button class="btn" onclick="closeActionSheet()">OK</button>`);
+  } else if (code === 'media-nodevice') toast('No microphone found on this device');
+  else if (code === 'media-busy-device') toast('Your microphone or camera is being used by another app');
+  else if (code === 'media-unavailable') toast('Calls aren’t supported in this browser');
+  else if (code === 'permission-denied') toast('Calls aren’t switched on yet. Try again later');
+  else if (code === 'busy') toast('You’re already on a call');
+  else toast('Couldn’t start the call. Check your connection');
+}
+function startRealCall(m, kind) {
+  if (!(window.CD && window.CD.call) || !rtReady()) { toast('Not connected. Try again'); return; }
+  callAudioCtx();
+  Object.assign(call, { active: true, real: true, incoming: false, reconnecting: false, kind, id: call.id + 1, started: 0, mute: false, cam: true, spk: kind === 'video', name: m.name, mid: m.mid });
+  openCallScreen(m, kind, 'Calling…', false);
+  if (kind === 'video') setSelfPlaceholder('Starting camera…');
+  const id = call.id;
+  window.CD.call.start(m.mid, m.uid, kind, m.name).catch(e => {
+    console.warn('Call failed to start', e && (e.code || e.message));
+    if (call.id !== id) return;
+    closeCallScreen();
+    callFailMessage(Object.assign(e || {}, { kind }));
+  });
+}
+function acceptCall() {
+  if (!call.active || !call.real || !call.incoming) return;
+  ringStop();
+  callAudioCtx();
+  call.incoming = false;
+  const scr = document.getElementById('callScreen');
+  scr.classList.remove('incoming');
+  scr.classList.toggle('video', call.kind === 'video');
+  document.getElementById('callKind').textContent = call.kind === 'video' ? 'Clean Date video call' : 'Clean Date voice call';
+  document.getElementById('callStatus').textContent = 'Connecting…';
+  if (call.kind === 'video') setSelfPlaceholder('Starting camera…');
+  renderCallToggles();
+  const id = call.id, kind = call.kind;
+  window.CD.call.accept().catch(e => { if (call.id === id && call.active) closeCallScreen(); callFailMessage(Object.assign(e || {}, { kind })); });
+}
+function declineCall() {
+  if (!call.active || !call.real) return;
+  if (window.CD && window.CD.call && window.CD.call.active()) window.CD.call.decline();
+  else closeCallScreen();
+  toast('Call declined');
+}
+function endRealCall() {
+  if (call.incoming) return declineCall();
+  if (window.CD && window.CD.call && window.CD.call.active()) window.CD.call.hangup();
+  else { closeCallScreen(); toast('Call cancelled'); }
+}
+function realCallToggle(which) {
+  if (call.incoming) return;
+  const C = window.CD && window.CD.call;
+  if (which === 'mute') { call.mute = !call.mute; if (C) C.setMute(call.mute); }
+  if (which === 'spk') { call.spk = !call.spk; applySpeaker(); }
+  if (which === 'cam') {
+    call.cam = !call.cam;
+    if (C) C.setCam(call.cam);
+    const hasVid = !!(call.stream && call.stream.getVideoTracks().length);
+    document.getElementById('selfView').classList.toggle('live', call.cam && hasVid);
+    if (!call.cam) setSelfPlaceholder('Camera off');
+    else if (!hasVid) setSelfPlaceholder('Camera unavailable');
+  }
+  renderCallToggles();
+}
+window.rtCallUI = {
+  inMockCall: () => call.active && !call.real,
+  local(stream) {
+    if (!call.active || !call.real) return;
+    call.stream = stream;
+    stream.getAudioTracks().forEach(t => { t.enabled = !call.mute; });
+    const hasVid = stream.getVideoTracks().length > 0;
+    if (hasVid) {
+      stream.getVideoTracks().forEach(t => { t.enabled = call.cam; });
+      const v = document.getElementById('selfVideo');
+      v.srcObject = stream;
+      try { const p = v.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+      document.getElementById('selfView').classList.toggle('live', call.cam);
+      if (!call.cam) setSelfPlaceholder('Camera off');
+    } else if (call.kind === 'video') setSelfPlaceholder('Camera unavailable');
+  },
+  remote(stream) {
+    if (!call.active || !call.real) return;
+    const el = callRemoteEl();
+    if (el.srcObject !== stream) el.srcObject = stream;
+    if (call.kind === 'video') document.getElementById('callScreen').classList.toggle('has-remote', stream.getVideoTracks().length > 0);
+    playRemote();
+    if (call.spk) applySpeaker();
+  },
+  status(text) {
+    if (!call.active || !call.real || call.incoming) return;
+    if (call.started) { call.reconnecting = text === 'Reconnecting…'; callTick(); }
+    else document.getElementById('callStatus').textContent = text;
+  },
+  connected() {
+    if (!call.active || !call.real) return;
+    ringStop();
+    call.started = Date.now();
+    call.reconnecting = false;
+    document.getElementById('callScreen').classList.add('connected');
+    callTick();
+    clearInterval(call.timer);
+    call.timer = setInterval(callTick, 1000);
+    playRemote();
+  },
+  reconnected() { call.reconnecting = false; callTick(); },
+  incoming(mid, kind) {
+    const m = state.matches.find(x => x.rt && x.mid === mid) || { name: 'Your match', photo: '' };
+    closeActionSheet();
+    toggleEmoji(false);
+    Object.assign(call, { active: true, real: true, incoming: true, reconnecting: false, kind, id: call.id + 1, started: 0, mute: false, cam: true, spk: kind === 'video', name: m.name, mid });
+    openCallScreen(m, kind, kind === 'video' ? 'Video call…' : 'Voice call…', true);
+    ringStart();
+    return m.name;
+  },
+  busyMissed(mid, kind) {
+    const m = state.matches.find(x => x.rt && x.mid === mid);
+    toast(`Missed ${kind === 'video' ? 'video' : 'voice'} call from ${m ? m.name : 'a match'} (you were on a call)`);
+  },
+  closed(outcome, msg) {
+    if (!call.real) return;
+    closeCallScreen();
+    if (msg) toast(msg);
+    if (document.getElementById('chat').classList.contains('active')) renderChat();
+  }
+};
+window.addEventListener('pagehide', () => { if (call.real && window.CD && window.CD.call && window.CD.call.active()) window.CD.call.hangup(); stopCallStream(); });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (call.active) endCall();
@@ -2712,6 +2942,7 @@ async function forgotPassword() {
 }
 async function logout() {
   if (!confirm('Log out?')) return;
+  if (call.active) endCall();
   try { if (window.CD) await window.CD.logout(); } catch (e) { console.warn(e); }
   // onAuthStateChanged handles clearing the cached profile and showing onboarding
   if (!window.CD) { state.loggedIn = false; state.user = null; saveState(); showScreen('onboarding'); }
@@ -2850,7 +3081,7 @@ import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWith
   GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail,
   sendEmailVerification, browserLocalPersistence, setPersistence } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, limit, serverTimestamp,
-  where, orderBy, limitToLast, onSnapshot, runTransaction, writeBatch, connectFirestoreEmulator } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
+  where, orderBy, limitToLast, onSnapshot, runTransaction, writeBatch, updateDoc, addDoc, connectFirestoreEmulator } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
 import { connectAuthEmulator } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 
 const firebaseConfig = {
@@ -2964,7 +3195,7 @@ async function loadCloudMembers(myUid) {
 // matches/{uidA_uidB}    {users:[a,b] sorted, status:'active'|'closed', createdAt, createdBy, lastMessage, lastAt, lastFrom, superBy[], closedBy?, closedAt?}
 // matches/{id}/messages/{auto} {from, text, img?, createdAt}
 // reports/{auto}         {reporter, reported, matchId, reason, createdAt, status:'open'}
-const RTM = { uid: null, off: false, unsubM: null, subs: new Map() };
+const RTM = { uid: null, off: false, unsubM: null, subs: new Map(), callSubs: new Map() };
 const pairId = (a, b) => a < b ? a + '_' + b : b + '_' + a;
 const ms = t => (t && typeof t.toMillis === 'function') ? t.toMillis() : (typeof t === 'number' ? t : 0);
 function rtDenied(e, where_) {
@@ -2976,6 +3207,9 @@ function rtStop() {
   RTM.unsubM = null;
   RTM.subs.forEach(u => { try { u(); } catch (e) {} });
   RTM.subs.clear();
+  RTM.callSubs.forEach(u => { try { u(); } catch (e) {} });
+  RTM.callSubs.clear();
+  if (CALL) { try { callHangup(); } catch (e) {} }
   RTM.uid = null;
 }
 function rtSyncMsgSubs(mids) {
@@ -2987,7 +3221,7 @@ function rtSyncMsgSubs(mids) {
     const q = query(collection(db, 'matches', mid, 'messages'), orderBy('createdAt'), limitToLast(200));
     RTM.subs.set(mid, onSnapshot(q, snap => {
       if (RTM.uid !== me) return;
-      const list = snap.docs.map(ds => { const d = ds.data({ serverTimestamps: 'estimate' }); return { from: d.from === me ? 'me' : 'them', text: d.text || '', img: d.img || '', t: ms(d.createdAt) }; });
+      const list = snap.docs.map(ds => { const d = ds.data({ serverTimestamps: 'estimate' }); return { from: d.sys === true ? 'system' : d.from === me ? 'me' : 'them', text: d.text || '', img: d.img || '', t: ms(d.createdAt) }; });
       window.rtOnMessages && window.rtOnMessages(mid, list);
     }, e => { RTM.subs.delete(mid); if (e && e.code !== 'permission-denied') console.warn('Messages listener error', e); }));
   });
@@ -3011,6 +3245,7 @@ async function rtStart(uid) {
         lastMessage: d.lastMessage || '', lastAt: ms(d.lastAt), lastFrom: d.lastFrom ? (d.lastFrom === uid ? 'me' : 'them') : '', superBy: Array.isArray(d.superBy) ? d.superBy : [] };
     });
     rtSyncMsgSubs(list.filter(m => m.status === 'active').map(m => m.mid));
+    rtSyncCallSubs(list.filter(m => m.status === 'active').map(m => m.mid));
     window.rtOnMatches && window.rtOnMatches(list, first);
     first = false;
   }, e => rtDenied(e, 'matches'));
@@ -3062,6 +3297,311 @@ async function rtGetMember(uid) {
   return p;
 }
 
+// ---------- Real voice / video calls (WebRTC peer-to-peer, Firestore signaling) ----------
+// matches/{mid}/calls/{callId} {caller, callee, kind, status, offer, answer, createdAt, acceptedAt, endedAt, endedBy, duration, restartOffer, restartAnswer}
+//   + callerCandidates / calleeCandidates subcollections (ICE).
+// STUN finds a direct path for most calls. TURN relays the ones that can't connect directly (strict mobile / office networks).
+// To add TURN later (e.g. Cloudflare Realtime TURN or Metered), put the server(s) in TURN_SERVERS, e.g.
+//   { urls: ['turn:turn.example.com:3478?transport=udp', 'turns:turn.example.com:443?transport=tcp'], username: '…', credential: '…' }
+const STUN_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+const TURN_SERVERS = [];
+const RING_MS = 30000;      // no answer after 30 s -> missed
+const CONNECT_MS = 20000;   // no media path after 20 s -> "Couldn't connect"
+const STALE_RING_MS = 45000;
+let CALL = null;            // the one live call (or null)
+const seenCalls = new Set();
+const callUI = () => window.rtCallUI || {};
+const kindLabel = k => k === 'video' ? 'video' : 'voice';
+function callLogText(kind, outcome, secs) {
+  const head = kind === 'video' ? '📹 Video call' : '📞 Voice call';
+  if (outcome === 'ended') return head + ' · ' + (Math.floor(secs / 60) < 10 ? '0' : '') + Math.floor(secs / 60) + ':' + ((secs % 60) < 10 ? '0' : '') + (secs % 60);
+  if (outcome === 'missed') return 'Missed ' + kindLabel(kind) + ' call';
+  if (outcome === 'failed') return head + ' · couldn’t connect';
+  return head + ' · ' + outcome; // declined / cancelled
+}
+async function callLog(mid, text) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me) return;
+  try {
+    const b = writeBatch(db);
+    b.set(doc(collection(db, 'matches', mid, 'messages')), { from: me, text, sys: true, createdAt: serverTimestamp() });
+    b.update(doc(db, 'matches', mid), { lastMessage: text.slice(0, 200), lastAt: serverTimestamp(), lastFrom: me });
+    await b.commit();
+  } catch (e) { console.warn('Call log not saved', e && e.code); }
+}
+// Move the call doc from one of `from` statuses to `to`. Returns true only for the side that made the change (so only one side logs it).
+async function callTransition(ref, from, to, extra) {
+  try {
+    return await runTransaction(db, async tx => {
+      const s = await tx.get(ref);
+      if (!s.exists() || !from.includes(s.data().status)) return false;
+      tx.update(ref, Object.assign({ status: to, endedAt: serverTimestamp() }, extra || {}));
+      return true;
+    });
+  } catch (e) { console.warn('Call status update failed', e && e.code); return false; }
+}
+function mediaError(e) {
+  const n = e && e.name;
+  const err = new Error(n === 'NotAllowedError' || n === 'SecurityError' ? 'denied' : (n === 'NotFoundError' || n === 'OverconstrainedError') ? 'nodevice' : n === 'NotReadableError' ? 'busy-device' : 'unavailable');
+  err.code = 'media-' + err.message;
+  return err;
+}
+async function getCallMedia(kind) {
+  const md = navigator.mediaDevices;
+  if (!md || !md.getUserMedia || !window.isSecureContext) throw Object.assign(new Error('unavailable'), { code: 'media-unavailable' });
+  const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+  try {
+    return await md.getUserMedia({ audio, video: kind === 'video' ? { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } : false });
+  } catch (e) {
+    if (kind === 'video' && e && (e.name === 'NotFoundError' || e.name === 'OverconstrainedError' || e.name === 'NotReadableError')) {
+      try { return await md.getUserMedia({ audio, video: false }); } catch (e2) { throw mediaError(e2); } // no usable camera: talk with camera off
+    }
+    throw mediaError(e);
+  }
+}
+function candToDoc(c) {
+  const j = c.toJSON ? c.toJSON() : c;
+  return { candidate: j.candidate || '', sdpMid: j.sdpMid == null ? null : j.sdpMid, sdpMLineIndex: j.sdpMLineIndex == null ? null : j.sdpMLineIndex, usernameFragment: j.usernameFragment == null ? null : j.usernameFragment, createdAt: serverTimestamp() };
+}
+function addRemoteCand(C, d) {
+  const init = { candidate: d.candidate, sdpMid: d.sdpMid, sdpMLineIndex: d.sdpMLineIndex };
+  if (d.usernameFragment) init.usernameFragment = d.usernameFragment;
+  if (!C.pc || C.done) return;
+  if (!C.pc.remoteDescription) { C.pendingCands.push(init); return; }
+  C.pc.addIceCandidate(init).catch(() => {});
+}
+function flushRemoteCands(C) { const l = C.pendingCands.splice(0); l.forEach(c => C.pc.addIceCandidate(c).catch(() => {})); }
+function sendOwnCand(C, c) {
+  if (!c || !c.candidate || C.done) return;
+  if (!C.docReady) { C.ownCands.push(c); return; }
+  addDoc(collection(C.ref, C.role === 'caller' ? 'callerCandidates' : 'calleeCandidates'), candToDoc(c)).catch(() => {});
+}
+function clearCallTimers(C) { ['ringT', 'connT', 'failT'].forEach(k => { if (C[k]) { clearTimeout(C[k]); C[k] = null; } }); }
+function buildPc(C) {
+  const pc = new RTCPeerConnection({ iceServers: STUN_SERVERS.concat(TURN_SERVERS) });
+  C.pc = pc;
+  C.remote = new MediaStream();
+  C.local.getTracks().forEach(t => pc.addTrack(t, C.local));
+  pc.ontrack = ev => {
+    if (C.done) return;
+    if (!C.remote.getTracks().includes(ev.track)) C.remote.addTrack(ev.track);
+    callUI().remote && callUI().remote(C.remote);
+  };
+  pc.onicecandidate = ev => { if (ev.candidate) sendOwnCand(C, ev.candidate); };
+  pc.oniceconnectionstatechange = () => onIceState(C);
+  return pc;
+}
+function onIceState(C) {
+  if (C.done || !C.pc) return;
+  const st = C.pc.iceConnectionState;
+  if (st === 'connected' || st === 'completed') {
+    if (C.failT) { clearTimeout(C.failT); C.failT = null; }
+    if (C.connT) { clearTimeout(C.connT); C.connT = null; }
+    if (!C.connectedAt) { C.connectedAt = Date.now(); callUI().connected && callUI().connected(); }
+    else callUI().reconnected && callUI().reconnected();
+  } else if (st === 'disconnected' || st === 'failed') {
+    if (!C.connectedAt) { if (st === 'failed' && !C.connT) failCall(C); return; } // still within the first-connect window
+    callUI().status && callUI().status('Reconnecting…');
+    if (st === 'failed' && C.role === 'caller' && !C.restarted) iceRestart(C);
+    if (!C.failT) C.failT = setTimeout(() => failCall(C), CONNECT_MS);
+  }
+}
+async function iceRestart(C) {
+  if (C.restarted || C.done || !C.pc) return;
+  C.restarted = true;
+  try {
+    const offer = await C.pc.createOffer({ iceRestart: true });
+    await C.pc.setLocalDescription(offer);
+    await updateDoc(C.ref, { restartOffer: { type: offer.type, sdp: offer.sdp } });
+  } catch (e) { console.warn('ICE restart failed', e); }
+}
+async function onCallDoc(C, d) {
+  if (C.done || !d) return;
+  if (!(C.status === 'accepting' && d.status === 'ringing')) C.status = d.status;
+  if (C.role === 'caller') {
+    if (d.status === 'accepted' && d.answer && C.pc && !C.pc.currentRemoteDescription) {
+      try { await C.pc.setRemoteDescription(d.answer); flushRemoteCands(C); } catch (e) { console.warn('Bad answer', e); }
+      if (C.ringT) { clearTimeout(C.ringT); C.ringT = null; }
+      callUI().status && callUI().status('Connecting…');
+      if (!C.connT && !C.connectedAt) C.connT = setTimeout(() => { C.connT = null; if (!C.connectedAt) failCall(C); }, CONNECT_MS);
+    }
+    if (d.restartAnswer && d.restartAnswer.sdp !== C.lastRestartAnswer && C.pc && C.pc.signalingState === 'have-local-offer') {
+      C.lastRestartAnswer = d.restartAnswer.sdp;
+      C.pc.setRemoteDescription(d.restartAnswer).catch(e => console.warn('Restart answer failed', e));
+    }
+    if (d.status === 'declined') return finishCall(C, 'declined', 'Call declined');
+    if (d.status === 'busy') return finishCall(C, 'busy', (C.name || 'They') + ' is on another call');
+  } else {
+    if (d.restartOffer && d.restartOffer.sdp !== C.lastRestartOffer && C.pc && C.status === 'accepted') {
+      C.lastRestartOffer = d.restartOffer.sdp;
+      try {
+        await C.pc.setRemoteDescription(d.restartOffer);
+        const ans = await C.pc.createAnswer();
+        await C.pc.setLocalDescription(ans);
+        await updateDoc(C.ref, { restartAnswer: { type: ans.type, sdp: ans.sdp } });
+      } catch (e) { console.warn('Restart answer failed', e); }
+    }
+    if (d.status === 'canceled' || d.status === 'missed') return finishCall(C, d.status, 'Missed call from ' + (C.name || 'your match'));
+  }
+  if (d.status === 'ended') return finishCall(C, 'ended', 'Call ended');
+}
+function listenCall(C) {
+  C.unsubs.push(onSnapshot(C.ref, s => { if (s.exists()) onCallDoc(C, s.data()); }, e => console.warn('Call listener error', e && e.code)));
+  const theirs = collection(C.ref, C.role === 'caller' ? 'calleeCandidates' : 'callerCandidates');
+  C.unsubs.push(onSnapshot(theirs, s => { s.docChanges().forEach(ch => { if (ch.type === 'added') addRemoteCand(C, ch.doc.data()); }); }, () => {}));
+}
+function newCall(o) {
+  return Object.assign({ id: '', ref: null, pc: null, local: null, remote: null, unsubs: [], pendingCands: [], ownCands: [], docReady: false, done: false, status: 'new', connectedAt: 0, restarted: false }, o);
+}
+function cleanupCall(C) {
+  C.done = true;
+  clearCallTimers(C);
+  C.unsubs.forEach(u => { try { u(); } catch (e) {} });
+  C.unsubs = [];
+  if (C.local) C.local.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
+  if (C.pc) { try { C.pc.ontrack = C.pc.onicecandidate = C.pc.oniceconnectionstatechange = null; C.pc.close(); } catch (e) {} }
+  if (CALL === C) CALL = null;
+}
+function finishCall(C, outcome, msg) {
+  if (C.done) return;
+  cleanupCall(C);
+  callUI().closed && callUI().closed(outcome, msg);
+}
+function callSecs(C) { return C.connectedAt ? Math.max(1, Math.round((Date.now() - C.connectedAt) / 1000)) : 0; }
+async function failCall(C) {
+  if (C.done) return;
+  const secs = callSecs(C);
+  finishCall(C, 'failed', secs ? 'Call dropped. Check your connection' : 'Couldn’t connect. Check your connection and try again');
+  if (await callTransition(C.ref, ['accepted'], 'ended', { endedBy: C.me, duration: secs })) callLog(C.mid, secs ? callLogText(C.kind, 'ended', secs) : callLogText(C.kind, 'failed'));
+  else if (C.role === 'caller' && await callTransition(C.ref, ['ringing'], 'canceled')) callLog(C.mid, callLogText(C.kind, 'failed'));
+}
+
+// Outgoing call. Resolves once ringing; rejects with code media-denied / media-nodevice / permission-denied / busy …
+async function callStart(mid, other, kind, name) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me || RTM.off) throw Object.assign(new Error('offline'), { code: 'offline' });
+  if (CALL) throw Object.assign(new Error('busy'), { code: 'busy' });
+  const C = newCall({ role: 'caller', mid, other, kind, name, me });
+  CALL = C;
+  try {
+    C.local = await getCallMedia(kind);
+    if (C.done) { C.local.getTracks().forEach(t => t.stop()); return; }
+    callUI().local && callUI().local(C.local);
+    buildPc(C);
+    C.ref = doc(collection(db, 'matches', mid, 'calls'));
+    C.id = C.ref.id;
+    seenCalls.add(C.id);
+    const offer = await C.pc.createOffer();
+    await C.pc.setLocalDescription(offer);
+    if (C.done) return;
+    await setDoc(C.ref, { caller: me, callee: other, kind, status: 'ringing', offer: { type: offer.type, sdp: offer.sdp }, createdAt: serverTimestamp() });
+    C.status = 'ringing';
+    C.docReady = true;
+    C.ownCands.splice(0).forEach(c => sendOwnCand(C, c));
+    if (C.done) { callTransition(C.ref, ['ringing'], 'canceled'); return; }
+    listenCall(C);
+    callUI().status && callUI().status('Ringing…');
+    C.ringT = setTimeout(async () => {
+      C.ringT = null;
+      if (C.done || C.status !== 'ringing') return;
+      finishCall(C, 'noanswer', 'No answer');
+      if (await callTransition(C.ref, ['ringing'], 'missed')) callLog(mid, callLogText(kind, 'missed'));
+    }, RING_MS);
+  } catch (e) {
+    cleanupCall(C);
+    throw e;
+  }
+}
+async function callAccept() {
+  const C = CALL;
+  if (!C || C.role !== 'callee' || C.status !== 'ringing') return;
+  C.status = 'accepting';
+  try {
+    C.local = await getCallMedia(C.kind);
+  } catch (e) {
+    finishCall(C, 'media', '');
+    if (await callTransition(C.ref, ['ringing'], 'declined')) callLog(C.mid, 'Missed ' + kindLabel(C.kind) + ' call');
+    throw e;
+  }
+  if (C.done) { C.local.getTracks().forEach(t => t.stop()); return; }
+  callUI().local && callUI().local(C.local);
+  try {
+    buildPc(C);
+    await C.pc.setRemoteDescription(C.offer);
+    const ans = await C.pc.createAnswer();
+    await C.pc.setLocalDescription(ans);
+    const ok = await runTransaction(db, async tx => {
+      const s = await tx.get(C.ref);
+      if (!s.exists() || s.data().status !== 'ringing') return false;
+      tx.update(C.ref, { status: 'accepted', answer: { type: ans.type, sdp: ans.sdp }, acceptedAt: serverTimestamp() });
+      return true;
+    });
+    if (!ok) return finishCall(C, 'missed', 'Missed call from ' + (C.name || 'your match'));
+    C.status = 'accepted';
+    C.docReady = true;
+    C.ownCands.splice(0).forEach(c => sendOwnCand(C, c));
+    C.unsubs.push(onSnapshot(collection(C.ref, 'callerCandidates'), s => { s.docChanges().forEach(ch => { if (ch.type === 'added') addRemoteCand(C, ch.doc.data()); }); }, () => {}));
+    flushRemoteCands(C);
+    callUI().status && callUI().status('Connecting…');
+    if (!C.connectedAt) C.connT = setTimeout(() => { C.connT = null; if (!C.connectedAt) failCall(C); }, CONNECT_MS);
+  } catch (e) {
+    console.warn('Answer failed', e);
+    failCall(C);
+  }
+}
+async function callDecline() {
+  const C = CALL;
+  if (!C || C.role !== 'callee') return;
+  finishCall(C, 'declined', '');
+  if (await callTransition(C.ref, ['ringing'], 'declined')) callLog(C.mid, callLogText(C.kind, 'declined'));
+}
+async function callHangup() {
+  const C = CALL;
+  if (!C) return;
+  if (C.role === 'callee' && (C.status === 'ringing')) return callDecline();
+  const secs = callSecs(C);
+  finishCall(C, 'hangup', secs ? 'Call ended' : 'Call cancelled');
+  if (!C.ref || !C.docReady && C.role === 'caller') return; // never got as far as ringing
+  if (await callTransition(C.ref, ['accepted'], 'ended', { endedBy: C.me, duration: secs })) callLog(C.mid, secs ? callLogText(C.kind, 'ended', secs) : callLogText(C.kind, 'failed'));
+  else if (C.role === 'caller' && await callTransition(C.ref, ['ringing'], 'canceled')) callLog(C.mid, callLogText(C.kind, 'cancelled'));
+  else if (C.role === 'callee' && await callTransition(C.ref, ['ringing'], 'declined')) callLog(C.mid, callLogText(C.kind, 'declined'));
+}
+// Incoming: one listener per active match on calls where status == 'ringing' (single-field query, no composite index).
+function onRinging(mid, ds) {
+  const me = RTM.uid;
+  const d = ds.data({ serverTimestamps: 'estimate' });
+  if (!d || d.callee !== me || d.status !== 'ringing' || seenCalls.has(ds.id)) return;
+  const age = Date.now() - ms(d.createdAt);
+  if (ms(d.createdAt) && age > STALE_RING_MS) return; // left over from a caller that crashed
+  seenCalls.add(ds.id);
+  const ref = doc(db, 'matches', mid, 'calls', ds.id);
+  const busy = !!CALL || !!(window.rtCallUI && window.rtCallUI.inMockCall && window.rtCallUI.inMockCall());
+  if (busy) {
+    callTransition(ref, ['ringing'], 'busy').then(ok => { if (ok) callLog(mid, 'Missed ' + kindLabel(d.kind) + ' call'); });
+    callUI().busyMissed && callUI().busyMissed(mid, d.kind);
+    return;
+  }
+  const C = newCall({ role: 'callee', mid, other: d.caller, kind: d.kind === 'video' ? 'video' : 'voice', ref, id: ds.id, offer: d.offer, status: 'ringing', me });
+  CALL = C;
+  C.name = (callUI().incoming && callUI().incoming(mid, C.kind)) || '';
+  C.unsubs.push(onSnapshot(ref, s => { if (s.exists()) onCallDoc(C, s.data()); }, () => {}));
+  // safety net: if the caller vanished without updating the doc, stop ringing
+  C.ringT = setTimeout(() => { C.ringT = null; if (!C.done && C.status === 'ringing') finishCall(C, 'missed', 'Missed call from ' + (C.name || 'your match')); }, RING_MS + 5000);
+}
+function rtSyncCallSubs(mids) {
+  const want = new Set(mids);
+  RTM.callSubs.forEach((u, mid) => { if (!want.has(mid)) { try { u(); } catch (e) {} RTM.callSubs.delete(mid); } });
+  want.forEach(mid => {
+    if (RTM.callSubs.has(mid)) return;
+    const q = query(collection(db, 'matches', mid, 'calls'), where('status', '==', 'ringing'));
+    RTM.callSubs.set(mid, onSnapshot(q, snap => {
+      snap.docChanges().forEach(ch => { if (ch.type !== 'removed') onRinging(mid, ch.doc); });
+    }, e => { RTM.callSubs.delete(mid); if (e && e.code !== 'permission-denied') console.warn('Calls listener error', e); }));
+  });
+  // the match of the live call ended (unmatched): hang up
+  if (CALL && !want.has(CALL.mid)) callHangup();
+}
+
 function isMobile() { return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
 async function google() {
   const provider = new GoogleAuthProvider();
@@ -3091,7 +3631,14 @@ window.CD = {
   resetPassword: email => sendPasswordResetEmail(auth, email),
   saveProfile, readProfile,
   saveCoords: async (lat, lng) => { const u = auth.currentUser; if (!u || !profileExists) return; await setDoc(doc(db, 'users', u.uid), { lat, lng, updatedAt: serverTimestamp() }, { merge: true }); },
-  rt: { like: rtLike, send: rtSend, end: rtEnd, getMember: rtGetMember, ready: () => !RTM.off && !!RTM.uid && !!auth.currentUser, disable: () => { RTM.off = true; } }
+  rt: { like: rtLike, send: rtSend, end: rtEnd, getMember: rtGetMember, ready: () => !RTM.off && !!RTM.uid && !!auth.currentUser, disable: () => { RTM.off = true; } },
+  call: { start: callStart, accept: callAccept, decline: callDecline, hangup: callHangup, active: () => !!CALL,
+    setMute: m => { if (CALL && CALL.local) CALL.local.getAudioTracks().forEach(t => { t.enabled = !m; }); },
+    setCam: on => { if (CALL && CALL.local) CALL.local.getVideoTracks().forEach(t => { t.enabled = !!on; }); },
+    hasVideo: () => !!(CALL && CALL.local && CALL.local.getVideoTracks().length),
+    _state: () => CALL ? { role: CALL.role, status: CALL.status, id: CALL.id, mid: CALL.mid, kind: CALL.kind, pc: CALL.pc ? CALL.pc.connectionState : '', ice: CALL.pc ? CALL.pc.iceConnectionState : '',
+      local: CALL.local ? CALL.local.getTracks().map(t => t.kind + ':' + t.enabled + ':' + t.readyState) : [], remote: CALL.remote ? CALL.remote.getTracks().map(t => t.kind + ':' + t.readyState) : [], restarted: CALL.restarted } : null,
+    _restart: () => CALL && CALL.role === 'caller' ? iceRestart(CALL) : null }
 };
 
 getRedirectResult(auth).catch(e => { setAuthError('loginError', friendlyError(e)); setAuthError('signupError', friendlyError(e)); });
