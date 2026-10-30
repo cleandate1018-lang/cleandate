@@ -685,12 +685,6 @@ header .btn { flex-shrink: 0; }
         <p class="muted">Flexible short-term</p>
         <button class="btn secondary" onclick="toast('Purchases are disabled in the prototype')">Get Weekly</button>
       </div>
-      <div class="card" id="cloudCard">
-        <h3>Saved in cloud</h3>
-        <p class="muted" id="cloudAccount" style="font-size:13px; margin-bottom:8px;">Not signed in</p>
-        <div id="cloudData" style="font-size:13px;" class="muted">Tap Refresh to see what’s saved to your account.</div>
-        <button class="btn secondary" style="margin-top:10px;" onclick="refreshCloudPanel()">Refresh from cloud</button>
-      </div>
       <button class="btn danger" onclick="logout()">Log Out</button>
       <button class="btn secondary" onclick="resetDemo()">Clear local cache</button>
     </div>
@@ -2047,6 +2041,7 @@ function resetDemo() {
 function cloudRow(k, v) { return `<tr><td>${esc(k)}</td><td>${esc(v == null || v === '' ? '—' : v)}</td></tr>`; }
 async function refreshCloudPanel() {
   const acct = document.getElementById('cloudAccount'), box = document.getElementById('cloudData');
+  if (!acct || !box) return;
   if (!window.CD || !window.CD.currentUser()) { acct.textContent = 'Not signed in'; box.textContent = 'Sign in to see your saved profile.'; return; }
   const u = window.CD.currentUser();
   acct.textContent = 'Signed in as ' + (u.email || 'your Google account');
