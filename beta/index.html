@@ -1,0 +1,2190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Clean Date (Beta test)</title>
+<style>
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --accent: #0d9488;
+  --accent-soft: #ccfbf1;
+  --accent-dark: #0f766e;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --danger: #ef4444;
+  --success: #10b981;
+  --like: #10b981;
+  --nope: #ef4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  background: #0f172a;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+.phone {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+  margin: 0;
+}
+@media (min-width: 500px) {
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .phone {
+    width: 390px;
+    height: 844px;
+    border-radius: 48px;
+    box-shadow: 0 25px 60px -12px rgba(0,0,0,0.5);
+  }
+}
+html, body { overflow: hidden; height: 100%; overscroll-behavior: none; }
+.screen { display: none; position: absolute; inset: 0; height: 100%; flex-direction: column; background: var(--bg); overflow: hidden; }
+.screen.active { display: flex; }
+header {
+  height: calc(76px + env(safe-area-inset-top));
+  padding: calc(30px + env(safe-area-inset-top)) 16px 0;
+  gap: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(248,250,252,0.94);
+  backdrop-filter: blur(16px);
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.logo { font-weight: 800; font-size: 22px; color: var(--accent); letter-spacing: -0.5px; }
+.icon-btn { background: none; border: none; color: var(--text); font-size: 22px; cursor: pointer; padding: 8px; border-radius: 12px; }
+.icon-btn:active { background: rgba(0,0,0,0.05); }
+.content { flex: 1; overflow-y: auto; padding: calc(92px + env(safe-area-inset-top)) 18px 24px; -webkit-overflow-scrolling: touch; }
+.screen.has-nav .content { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+.card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.profile-img {
+  width: 100%;
+  height: 420px;
+  background: #e2e8f0;
+  background-size: cover;
+  background-position: center;
+  border-radius: 28px;
+  display: flex;
+  align-items: flex-end;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.profile-img.dragging { cursor: grabbing; transition: none; }
+.swipe-hint {
+  position: absolute;
+  top: 28px;
+  font-size: 36px;
+  font-weight: 900;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+  letter-spacing: -1px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.swipe-hint.like { left: 28px; color: var(--like); }
+.swipe-hint.nope { right: 28px; color: var(--nope); }
+.profile-img::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(transparent, rgba(0,0,0,0.6));
+}
+.profile-info { position: relative; z-index: 1; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.profile-name { font-size: 34px; font-weight: 800; letter-spacing: -0.6px; }
+.badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.95);
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-top: 8px;
+}
+.btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 12px;
+  transition: transform 0.1s, background 0.2s;
+}
+.btn:active { transform: scale(0.97); }
+.btn.secondary { background: #f1f5f9; color: var(--text); }
+.btn.danger { background: var(--danger); }
+.nav {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0 calc(14px + env(safe-area-inset-bottom));
+  height: calc(72px + env(safe-area-inset-bottom));
+  z-index: 20;
+  background: rgba(255,255,255,0.94);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+.nav button { background: none; border: none; color: #94a3b8; font-size: 26px; cursor: pointer; padding: 8px; }
+.nav button.active { color: var(--accent); }
+.input, select, textarea {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  margin-bottom: 12px;
+  font-size: 16px;
+  outline: none;
+}
+.input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+.chat-bubble {
+  max-width: 78%;
+  padding: 12px 16px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  line-height: 1.45;
+}
+.chat-bubble.me { background: var(--accent); color: #fff; margin-left: auto; border-bottom-right-radius: 6px; }
+.chat-bubble.them { background: #f1f5f9; color: var(--text); border-bottom-left-radius: 6px; }
+.tag {
+  display: inline-block;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 4px 6px 0 0;
+}
+.event-card {
+  background: var(--card);
+  border-radius: 20px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.event-banner {
+  height: 100px;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  position: relative;
+  color: white;
+}
+.event-emoji { font-size: 42px; position: absolute; top: 16px; right: 16px; }
+.event-date {
+  background: rgba(255,255,255,0.95);
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+.event-body { padding: 16px 18px 18px; }
+.event-body h3 { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
+.event-meta { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--muted); font-weight: 500; }
+.match-overlay {
+  position: absolute; inset: 0; background: rgba(15,23,42,0.85);
+  display: none; align-items: center; justify-content: center; z-index: 50;
+  flex-direction: column; color: white; text-align: center; padding: 40px;
+}
+.match-overlay.show { display: flex; }
+.icebreakers { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.icebreaker {
+  background: var(--accent-soft); color: var(--accent-dark);
+  border: none; padding: 8px 14px; border-radius: 999px; font-size: 13px;
+  font-weight: 600; cursor: pointer;
+}
+.progress { height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin: 8px 0; }
+.progress-bar { height: 100%; background: var(--accent); border-radius: 999px; }
+.muted { color: var(--muted); font-size: 14px; }
+
+.logo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+header .btn { flex-shrink: 0; }
+.nav button { display:flex; align-items:center; justify-content:center; width:64px; height:48px; border-radius:14px; }
+.nav button.active { background: var(--accent-soft); }
+.toast { position:absolute; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translate(-50%,20px); background:#0f172a; color:#fff; padding:12px 18px; border-radius:999px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:all .25s; z-index:100; white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+.toast.show { opacity:1; transform:translate(-50%,0); }
+.empty { text-align:center; padding:48px 24px; color:var(--muted); }
+.empty .em { font-size:48px; margin-bottom:12px; }
+.empty h3 { color:var(--text); font-size:18px; margin-bottom:6px; }
+.photo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+.photo-slot { aspect-ratio:1; background:#f1f5f9; border:2px dashed #cbd5e1; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; overflow:hidden; font-size:24px; color:#94a3b8; }
+.photo-slot.filled { border:none; }
+.photo-slot img { width:100%; height:100%; object-fit:cover; }
+.photo-slot .main-tag { position:absolute; left:6px; bottom:6px; background:var(--accent); color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; }
+.sheet-bg { position:absolute; inset:0; background:rgba(15,23,42,.5); z-index:90; display:none; align-items:flex-end; }
+.sheet-bg.show { display:flex; }
+.sheet { background:#fff; width:100%; border-radius:24px 24px 0 0; padding:16px 18px calc(24px + env(safe-area-inset-bottom)); }
+.check-row { display:flex; align-items:center; gap:10px; padding:8px 0; font-size:16px; }
+.check-row input { width:20px; height:20px; accent-color: var(--accent); }
+#chat .content { padding-bottom: calc(200px + env(safe-area-inset-bottom)); }
+.composer { position:absolute; left:0; right:0; bottom:calc(72px + env(safe-area-inset-bottom)); padding:8px 16px 10px; background:rgba(248,250,252,.96); backdrop-filter:blur(12px); border-top:1px solid rgba(0,0,0,.04); z-index:15; }
+.composer .icebreakers { flex-wrap:nowrap; overflow-x:auto; margin:0 0 8px; scrollbar-width:none; }
+.composer .icebreaker { white-space:nowrap; flex-shrink:0; }
+.chat-bubble { word-wrap:break-word; width:fit-content; }
+.btn.going { background: var(--accent-soft); color: var(--accent-dark); }
+.gallery { display:flex; gap:8px; overflow-x:auto; }
+.gallery img { width:72px; height:72px; object-fit:cover; border-radius:12px; cursor:pointer; border:2px solid transparent; flex-shrink:0; }
+.gallery img.sel { border-color: var(--accent); }
+.detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px; margin-top:14px; }
+.dist-wrap { position:relative; padding-top:34px; margin:6px 0 18px; }
+.dist-bubble { position:absolute; top:0; transform:translateX(-50%); background:var(--accent); color:#fff; font-size:13px; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap; pointer-events:none; }
+.dist-bubble::after { content:''; position:absolute; left:50%; bottom:-4px; transform:translateX(-50%); border:4px solid transparent; border-bottom:0; border-top-color:var(--accent); }
+.dist-ticks { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:6px; }
+
+/* ---------- Chat extras: header actions, composer tools, emoji, photos, calls ---------- */
+#chat header .chat-who { display:flex; align-items:center; gap:10px; min-width:0; flex:1; }
+#chat header .chat-who strong { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chat-actions { display:flex; gap:2px; flex-shrink:0; }
+.chat-actions .icon-btn { color:var(--accent); width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center; }
+.composer-row { display:flex; gap:6px; align-items:center; }
+.composer-row .input { min-width:0; }
+.tool-btn { flex-shrink:0; width:40px; height:40px; border:none; border-radius:50%; background:#f1f5f9; color:var(--muted); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; }
+.tool-btn:active { transform:scale(.94); }
+.tool-btn.on { background:var(--accent-soft); color:var(--accent-dark); }
+.send-btn { width:auto; flex-shrink:0; padding:12px 16px; margin:0; }
+.emoji-picker { display:none; grid-template-columns:repeat(auto-fill, minmax(40px, 1fr)); gap:2px; max-height:184px; overflow-y:auto; background:#fff; border:1px solid var(--border); border-radius:16px; padding:8px; margin-bottom:8px; box-shadow:0 6px 20px rgba(0,0,0,.08); }
+.emoji-picker.show { display:grid; }
+.emoji-picker button { background:none; border:none; font-size:24px; line-height:1; height:40px; border-radius:10px; cursor:pointer; padding:0; }
+.emoji-picker button:active { background:#f1f5f9; }
+.chat-bubble.photo { padding:4px; background:transparent; border:none; }
+.chat-bubble.photo img { display:block; max-width:min(220px, 62vw); max-height:280px; border-radius:16px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+.chat-bubble.me.photo img { border-bottom-right-radius:6px; }
+.chat-sys { align-self:center; text-align:center; font-size:12px; color:var(--muted); background:#eef2f6; padding:6px 12px; border-radius:999px; margin:4px auto 10px; width:fit-content; }
+#chatMessages { display:flex; flex-direction:column; }
+.viewer { position:absolute; inset:0; background:rgba(0,0,0,.94); z-index:80; display:none; align-items:center; justify-content:center; }
+.viewer.show { display:flex; }
+.viewer img { max-width:100%; max-height:100%; object-fit:contain; }
+.viewer .icon-btn { position:absolute; top:calc(30px + env(safe-area-inset-top)); right:14px; color:#fff; font-size:26px; }
+.call-screen { position:absolute; inset:0; z-index:70; display:none; flex-direction:column; align-items:center; color:#fff; background:linear-gradient(160deg,#0f766e 0%,#0f172a 75%); overflow:hidden; }
+.call-screen.show { display:flex; }
+.call-remote { position:absolute; inset:0; background:#0f172a center/cover; display:none; }
+.call-remote::after { content:''; position:absolute; inset:0; background:linear-gradient(rgba(15,23,42,.55), rgba(15,23,42,.15) 40%, rgba(15,23,42,.75)); }
+.call-screen.video .call-remote { display:block; }
+.call-top { position:relative; z-index:2; text-align:center; padding:calc(96px + env(safe-area-inset-top)) 24px 0; width:100%; }
+.call-avatar { width:148px; height:148px; border-radius:50%; background:#334155 center/cover; margin:0 auto 22px; border:4px solid rgba(255,255,255,.25); box-shadow:0 0 0 0 rgba(204,251,241,.5); animation:ring 1.6s infinite; }
+.call-screen.connected .call-avatar { animation:none; }
+.call-screen.video .call-avatar { display:none; }
+@keyframes ring { 0% { box-shadow:0 0 0 0 rgba(204,251,241,.45); } 100% { box-shadow:0 0 0 26px rgba(204,251,241,0); } }
+.call-name { font-size:30px; font-weight:800; letter-spacing:-.5px; text-shadow:0 2px 10px rgba(0,0,0,.3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.call-status { margin-top:6px; font-size:16px; opacity:.85; font-variant-numeric:tabular-nums; }
+.call-kind { margin-top:4px; font-size:13px; opacity:.65; }
+.self-view { position:absolute; z-index:3; top:calc(40px + env(safe-area-inset-top)); right:16px; width:104px; height:148px; border-radius:18px; overflow:hidden; background:#1e293b; border:2px solid rgba(255,255,255,.35); box-shadow:0 8px 24px rgba(0,0,0,.35); display:none; }
+.call-screen.video .self-view { display:block; }
+.self-view video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:none; }
+.self-view.live video { display:block; }
+.self-ph { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; font-size:11px; color:#cbd5e1; text-align:center; padding:6px; background:#1e293b center/cover; }
+.self-view.live .self-ph { display:none; }
+.call-controls { position:absolute; z-index:2; left:0; right:0; bottom:calc(40px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; align-items:center; gap:26px; }
+.call-toggles { display:flex; gap:22px; justify-content:center; }
+.call-tg { display:flex; flex-direction:column; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,.85); background:none; border:none; cursor:pointer; padding:0; }
+.call-tg .c { width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,.16); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; color:#fff; transition:background .2s; }
+.call-tg.on .c { background:#fff; color:#0f172a; }
+.call-end { width:72px; height:72px; border-radius:50%; border:none; background:var(--danger); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 8px 24px rgba(239,68,68,.45); }
+.call-end:active { transform:scale(.94); }
+.call-screen.video .call-top { text-align:left; padding:calc(52px + env(safe-area-inset-top)) 136px 0 22px; }
+.call-screen.video .call-name { font-size:26px; }
+.call-tg, .call-end, .tool-btn, .emoji-picker button, .chat-actions .icon-btn { -webkit-tap-highlight-color: transparent; }
+.logo.brand { position:relative; display:inline-flex; align-items:center; overflow:visible; padding-left:12px; isolation:isolate; }
+.logo.brand span { position:relative; z-index:1; }
+.logo-heart { position:absolute; left:0; top:50%; width:34px; height:31px; transform:translateY(-54%) rotate(-10deg); fill:#99f6e4; opacity:.55; z-index:0; pointer-events:none; }
+
+/* ---------- Restored V1 features ---------- */
+.more-btn { flex-shrink:0; width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center; color:var(--muted); border-radius:50%; -webkit-tap-highlight-color:transparent; }
+.chat-actions .more-btn { color:var(--muted); width:34px; }
+.sheet h3 { font-size:18px; text-align:center; margin:4px 0 2px; }
+.sheet .sub { text-align:center; color:var(--muted); font-size:14px; margin-bottom:6px; }
+.sheet .grab { width:40px; height:5px; border-radius:999px; background:#e2e8f0; margin:0 auto 10px; }
+.reason { display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid #f1f5f9; font-size:16px; cursor:pointer; }
+.reason input { width:20px; height:20px; accent-color:var(--accent); flex-shrink:0; }
+.sheet .reasons { max-height:46vh; overflow-y:auto; }
+.btn.ghost-danger { background:#fef2f2; color:var(--danger); }
+.event-meta .who { background:none; border:none; padding:0; font:inherit; color:var(--accent-dark); font-weight:700; cursor:pointer; }
+.person { display:flex; gap:12px; align-items:center; }
+.person .av { width:52px; height:52px; border-radius:50%; background:#e2e8f0 center/cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:20px; }
+.you-tag { display:inline-block; margin-left:6px; background:var(--accent-soft); color:var(--accent-dark); font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; vertical-align:middle; }
+.filter-row { display:flex; gap:8px; }
+.filter-row select { flex:1; min-width:0; padding:16px 6px 16px 12px; font-size:15px; }
+#chatSober { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chat-strip { position:absolute; top:calc(76px + env(safe-area-inset-top)); left:0; right:0; z-index:9; display:none; gap:14px; overflow-x:auto; padding:8px 16px 8px; background:rgba(248,250,252,.96); backdrop-filter:blur(12px); border-bottom:1px solid rgba(0,0,0,.05); scrollbar-width:none; }
+.chat-strip::-webkit-scrollbar { display:none; }
+#chat.has-strip .chat-strip { display:flex; }
+#chat.has-strip #chatMessages { padding-top:calc(92px + 78px + env(safe-area-inset-top)); }
+.strip-item { flex-shrink:0; width:54px; text-align:center; cursor:pointer; background:none; border:none; padding:0; font:inherit; color:var(--text); -webkit-tap-highlight-color:transparent; }
+.strip-item .av { width:48px; height:48px; margin:0 auto; border-radius:50%; background:#e2e8f0 center/cover; border:2px solid #fff; box-shadow:0 0 0 2px #cbd5e1; }
+.strip-item.on .av { box-shadow:0 0 0 2.5px var(--accent); }
+.strip-item .nm { font-size:11px; font-weight:600; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.strip-item.on .nm { color:var(--accent-dark); }
+.viewer .v-nav { position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,.18); color:#fff; font-size:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.viewer .v-prev { left:10px; } .viewer .v-next { right:10px; }
+.viewer .v-count { position:absolute; bottom:calc(28px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); color:#fff; font-size:13px; font-weight:700; background:rgba(255,255,255,.16); padding:5px 12px; border-radius:999px; }
+.viewer .v-dots { display:none; }
+.viewer:not(.multi) .v-nav, .viewer:not(.multi) .v-count { display:none; }
+#profileCard { cursor:pointer; }
+.perm-ic { width:64px; height:64px; border-radius:20px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; font-size:30px; margin:4px auto 10px; }
+.onb-mosaic { position:absolute; left:0; right:0; top:0; height:68%; overflow:hidden; pointer-events:none; z-index:1; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:calc(112px + env(safe-area-inset-top)) 14px 0; }
+.onb-mosaic .col { display:flex; flex-direction:column; gap:10px; }
+.onb-mosaic .col:nth-child(2) { margin-top:-24px; }
+.onb-mosaic .col:nth-child(3) { margin-top:22px; }
+.onb-mosaic .tile { width:100%; aspect-ratio:3/4; border-radius:18px; background:#e2e8f0 center/cover no-repeat; box-shadow:0 6px 18px rgba(15,23,42,.12); flex-shrink:0; }
+.onb-mosaic::after { content:''; position:absolute; left:0; right:0; bottom:0; height:55%; background:linear-gradient(rgba(248,250,252,0), var(--bg) 85%); }
+.beta-banner { position:absolute; top:calc(6px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:9999; background:#f59e0b; color:#1f2937; font-size:11px; font-weight:800; letter-spacing:.04em; padding:3px 10px; border-radius:999px; pointer-events:none; box-shadow:0 2px 6px rgba(0,0,0,.15); text-transform:uppercase; }
+.btn.google { background:#fff; color:#1f2937; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; gap:10px; }
+.auth-or { text-align:center; color:var(--muted); font-size:13px; margin:6px 0 12px; }
+.auth-err { color:var(--danger); font-size:14px; min-height:18px; margin:-4px 0 10px; }
+.link-btn { background:none; border:none; color:var(--accent-dark); font-weight:600; font-size:14px; cursor:pointer; padding:8px 0; }
+.cloud-table { width:100%; font-size:13px; border-collapse:collapse; }
+.cloud-table td { padding:5px 4px; border-bottom:1px solid var(--border); vertical-align:top; word-break:break-word; }
+.cloud-table td:first-child { color:var(--muted); width:38%; }
+#authLoading { position:absolute; inset:0; z-index:9000; background:rgba(248,250,252,.85); display:none; align-items:center; justify-content:center; font-weight:700; color:var(--accent-dark); }
+#authLoading.show { display:flex; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="beta-banner">Beta test</div>
+  <div id="authLoading">Loading…</div>
+  <!-- Onboarding -->
+  <div id="onboarding" class="screen active">
+    <div id="floatingPhotos" class="onb-mosaic" aria-hidden="true"></div>
+    <header style="z-index:5; background:transparent; border:none; backdrop-filter:none;">
+      <div class="logo brand" aria-label="Clean Date"><svg class="logo-heart" viewBox="0 0 32 29" aria-hidden="true" focusable="false"><path d="M16 28.2 13.7 26C5.6 18.7.3 13.9.3 8.1.3 3.4 4 .3 8.6.3c2.8 0 5.5 1.3 7.4 3.4C17.9 1.6 20.6.3 23.4.3 28 .3 31.7 3.4 31.7 8.1c0 5.8-5.3 10.6-13.4 17.9L16 28.2z"/></svg><span>Clean Date</span></div>
+    </header>
+    <div class="content" style="display:flex; flex-direction:column; justify-content:flex-end; padding:80px 20px calc(28px + env(safe-area-inset-bottom)); position:relative; z-index:2;">
+      <div style="background:#fff; border-radius:24px; padding:28px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+        <h1 style="font-size:26px; font-weight:800; margin-bottom:8px;">Dating without the hangover</h1>
+        <p class="muted" style="margin-bottom:20px;">A space for sober and sober-curious people to connect honestly.</p>
+        <button class="btn" onclick="startSignup()">Get Started</button>
+        <button class="btn secondary" onclick="showScreen('login')">Log In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile -->
+  <div id="editProfile" class="screen">
+    <header>
+      <button class="icon-btn" onclick="showScreen('profile')">←</button>
+      <div class="logo">Edit Profile</div>
+      <button class="btn" style="width:auto; padding:8px 14px; margin:0; font-size:14px;" onclick="saveEditProfile()">Save</button>
+    </header>
+    <div class="content">
+      <input class="input" id="editName" placeholder="First name">
+      <input class="input" id="editAge" type="number" placeholder="Age" min="18">
+      <select class="input" id="editGender">
+        <option value="">Gender</option><option>Male</option><option>Female</option><option>Trans</option><option>Non-binary</option>
+      </select>
+      <input class="input" id="editLocation" placeholder="City">
+      <input class="input" id="editJob" placeholder="Job / Occupation">
+      <input class="input" id="editHeight" placeholder="Height (e.g. 5'10)">
+      <select class="input" id="editKids">
+        <option value="">Kids</option><option>No kids</option><option>1 kid (part-time)</option><option>Wants kids someday</option><option>Has kids</option>
+      </select>
+      <select class="input" id="editSmoker">
+        <option value="">Smoking</option><option>Non-smoker</option><option>Occasionally</option><option>Smoker</option>
+      </select>
+      <select class="input" id="editSobriety">
+        <option value="">How long sober?</option><option>Sober curious</option><option>Under 6 months</option><option>6 months – 1 year</option><option>1–2 years</option><option>2–5 years</option><option>5+ years</option>
+      </select>
+      <select class="input" id="editProgram">
+        <option value="">Recovery program (optional)</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>None / Self-directed</option><option>Other</option>
+      </select>
+      <label class="muted" style="display:block; margin:4px 0 4px;">Still use? (select any)</label>
+      <div style="display:grid; grid-template-columns:1fr 1fr; column-gap:8px; margin-bottom:10px;">
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Nothing"> Nothing</label>
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Alcohol"> Alcohol</label>
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Cannabis"> Cannabis</label>
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Nicotine / Vaping"> Nicotine / Vaping</label>
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Kratom"> Kratom</label>
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Prescription meds (as prescribed)"> Prescription meds (as prescribed)</label>
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Psychedelics"> Psychedelics</label>
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Cocaine"> Cocaine</label>
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Opioids"> Opioids</label>
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Meth / Stimulants"> Meth / Stimulants</label>
+        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Other drugs"> Other drugs</label>
+      </div>
+      <p class="muted" style="margin:12px 0 8px;">Photos · tap a photo to replace or remove it</p>
+      <div id="editPhotoGrid" class="photo-grid"></div>
+      <p class="muted" style="margin-top:8px;">What are you looking for?</p>
+      <label class="check-row"><input type="checkbox" class="edit-intent" value="Dating"> Dating</label>
+      <label class="check-row"><input type="checkbox" class="edit-intent" value="Long-term"> Long-term</label>
+      <label class="check-row"><input type="checkbox" class="edit-intent" value="Friendship"> Friendship</label>
+      <textarea class="input" id="editBio" placeholder="Bio..." rows="3" style="margin-top:8px;"></textarea>
+      <button class="btn" onclick="saveEditProfile()">Save Changes</button>
+    </div>
+  </div>
+
+  <!-- Signup -->
+  <div id="signup" class="screen">
+    <header>
+      <button class="icon-btn" onclick="signupPrev()">←</button>
+      <div class="logo" id="signupTitle">Create your profile</div>
+      <div id="signupStepLabel" style="font-size:13px; color:var(--muted); flex-shrink:0;">1 / 4</div>
+    </header>
+    <div class="content">
+      <div class="progress" style="margin:0 0 16px;"><div class="progress-bar" id="signupProgress" style="width:25%; transition:width .3s;"></div></div>
+      <div id="signupStep1">
+        <input class="input" id="name" placeholder="First name">
+        <input class="input" id="age" type="number" placeholder="Age" min="18">
+        <select class="input" id="gender">
+          <option value="">Gender</option><option>Male</option><option>Female</option><option>Trans</option><option>Non-binary</option>
+        </select>
+        <input class="input" id="locationInput" placeholder="City">
+        <input class="input" id="jobInput" placeholder="Job / Occupation">
+        <input class="input" id="heightInput" placeholder="Height (e.g. 5'10)">
+        <select class="input" id="kidsInput">
+          <option value="">Kids</option><option>No kids</option><option>1 kid (part-time)</option><option>Wants kids someday</option><option>Has kids</option>
+        </select>
+        <select class="input" id="smokerInput">
+          <option value="">Smoking</option><option>Non-smoker</option><option>Occasionally</option><option>Smoker</option>
+        </select>
+        <button class="btn" onclick="signupNext(1)">Continue</button>
+      </div>
+      <div id="signupStep2" style="display:none;">
+        <label class="muted" style="display:block; margin-bottom:8px;">How long have you been sober?</label>
+        <select class="input" id="sobriety">
+          <option value="">Select</option><option>Sober curious</option><option>Under 6 months</option><option>6 months – 1 year</option><option>1–2 years</option><option>2–5 years</option><option>5+ years</option>
+        </select>
+        <select class="input" id="programInput">
+          <option value="">Recovery program (optional)</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>None / Self-directed</option><option>Other</option>
+        </select>
+        <label class="muted" style="display:block; margin:4px 0 4px;">Still use? (select any)</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; column-gap:8px; margin-bottom:10px;">
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Nothing"> Nothing</label>
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Alcohol"> Alcohol</label>
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Cannabis"> Cannabis</label>
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Nicotine / Vaping"> Nicotine / Vaping</label>
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Kratom"> Kratom</label>
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Prescription meds (as prescribed)"> Prescription meds (as prescribed)</label>
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Psychedelics"> Psychedelics</label>
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Cocaine"> Cocaine</label>
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Opioids"> Opioids</label>
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Meth / Stimulants"> Meth / Stimulants</label>
+          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Other drugs"> Other drugs</label>
+        </div>
+        <button class="btn" onclick="signupNext(2)">Continue</button>
+      </div>
+      <div id="signupStep3" style="display:none;">
+        <p class="muted" style="margin-bottom:12px;">Add up to 6 photos. Tap a photo to replace or remove it. The first one is your main photo.</p>
+        <div id="photoGrid" class="photo-grid"></div>
+        <button class="btn" onclick="signupNext(3)">Continue</button>
+      </div>
+      <div id="signupStep4" style="display:none;">
+        <p class="muted" style="margin-bottom:4px;">What are you looking for?</p>
+        <label class="check-row"><input type="checkbox" class="intent-cb" value="Dating" checked> Dating</label>
+        <label class="check-row"><input type="checkbox" class="intent-cb" value="Long-term"> Long-term</label>
+        <label class="check-row"><input type="checkbox" class="intent-cb" value="Friendship"> Friendship</label>
+        <textarea class="input" id="bioInput" placeholder="Share a bit about your recovery journey and what you're looking for..." rows="3" style="margin-top:8px;"></textarea>
+        <button class="btn" onclick="completeSignup()">Finish & Start Matching</button>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoFile(this)">
+
+  <!-- Discover -->
+  <div id="discover" class="screen has-nav">
+    <header>
+      <div class="logo brand" aria-label="Clean Date"><svg class="logo-heart" viewBox="0 0 32 29" aria-hidden="true" focusable="false"><path d="M16 28.2 13.7 26C5.6 18.7.3 13.9.3 8.1.3 3.4 4 .3 8.6.3c2.8 0 5.5 1.3 7.4 3.4C17.9 1.6 20.6.3 23.4.3 28 .3 31.7 3.4 31.7 8.1c0 5.8-5.3 10.6-13.4 17.9L16 28.2z"/></svg><span>Clean Date</span></div>
+      <button class="icon-btn" onclick="openFilters()" title="Filters">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="6" x2="20" y2="6"/>
+          <line x1="7" y1="12" x2="17" y2="12"/>
+          <line x1="10" y1="18" x2="14" y2="18"/>
+        </svg>
+      </button>
+    </header>
+    <div class="content">
+      <div id="discoverEmpty" class="empty" style="display:none;">
+        <div class="em">🔍</div>
+        <h3>No one matches your filters</h3>
+        <p>Try widening the age range or changing gender/program.</p>
+        <button class="btn" onclick="openFilters()">Adjust Filters</button>
+        <button class="btn secondary" onclick="resetFilters()">Reset Filters</button>
+      </div>
+      <div id="discoverBody">
+        <div class="profile-img" id="profileCard">
+          <div class="swipe-hint like">LIKE</div>
+          <div class="swipe-hint nope">NOPE</div>
+          <div class="profile-info">
+            <div class="profile-name" id="cardName">Alex, 28</div>
+            <div class="badge" id="cardSober">1 year sober</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; margin:4px 0 12px;">
+          <button class="btn danger" style="flex:1;" onclick="swipeLeft()">✕ Pass</button>
+          <button class="btn" style="flex:1; background:var(--success);" onclick="swipeRight()">♥ Like</button>
+        </div>
+        <div class="card">
+          <p id="bioText"></p>
+          <div id="tags" style="margin-top:10px;"></div>
+          <div id="photoGallery" class="gallery" style="margin-top:12px;"></div>
+          <div class="detail-grid">
+            <div><span class="muted">Gender</span><br><strong id="cardGender">—</strong></div>
+            <div><span class="muted">Kids</span><br><strong id="kids">—</strong></div>
+            <div><span class="muted">Height</span><br><strong id="height">—</strong></div>
+            <div><span class="muted">Smoking</span><br><strong id="smoker">—</strong></div>
+            <div><span class="muted">Work</span><br><strong id="job">—</strong></div>
+            <div><span class="muted">Location</span><br><strong id="location">—</strong></div>
+            <div><span class="muted">Program</span><br><strong id="program">—</strong></div>
+            <div><span class="muted">Intentions</span><br><strong id="looking">—</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="nav"></div>
+    <div class="match-overlay" id="matchOverlay">
+      <div style="font-size:64px; margin-bottom:12px;">🎉</div>
+      <h2 style="font-size:32px; font-weight:800; margin-bottom:8px;">It's a Match!</h2>
+      <div id="matchPhoto" style="width:120px; height:120px; border-radius:50%; background:#334155 center/cover; border:4px solid var(--accent); margin:8px auto 16px;"></div>
+      <p class="muted" style="color:#e2e8f0; margin-bottom:24px;">You and <span id="matchName"></span> both liked each other.</p>
+      <button class="btn" onclick="goToChat()">Send a Message</button>
+      <button class="btn secondary" onclick="closeMatch()" style="margin-top:8px;">Keep Swiping</button>
+    </div>
+  </div>
+
+  <!-- Matches -->
+  <div id="matches" class="screen has-nav">
+    <header><div class="logo">Matches</div></header>
+    <div class="content">
+      <div style="margin-bottom:16px;">
+        <div class="muted" style="margin-bottom:10px; font-weight:600;">New Matches</div>
+        <div id="newMatches" style="display:flex; gap:16px; overflow-x:auto; padding-bottom:8px;"></div>
+      </div>
+      <div class="muted" style="margin-bottom:10px; font-weight:600;">Messages</div>
+      <div id="messagesList"></div>
+    </div>
+    <div class="nav"></div>
+  </div>
+
+  <!-- Chat -->
+  <div id="chat" class="screen has-nav">
+    <header>
+      <button class="icon-btn" onclick="showScreen('matches')">←</button>
+      <div class="chat-who">
+        <div id="chatAvatar" style="width:36px; height:36px; border-radius:50%; background:#e2e8f0 center/cover; flex-shrink:0;"></div>
+        <div style="min-width:0;"><strong id="chatName">Jordan</strong><div class="muted" id="chatSober" style="font-size:12px;">2 years sober</div></div>
+      </div>
+      <div class="chat-actions">
+        <button class="icon-btn" id="voiceCallBtn" onclick="startCall('voice')" title="Voice call" aria-label="Voice call"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+        <button class="icon-btn" id="videoCallBtn" onclick="startCall('video')" title="Video call" aria-label="Video call"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></button>
+        <button class="icon-btn more-btn" id="chatMoreBtn" onclick="openMatchMenu(activeChat)" title="More" aria-label="More options"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+      </div>
+    </header>
+    <div class="chat-strip" id="chatStrip" aria-label="Your matches"></div>
+    <div class="content" id="chatMessages"></div>
+    <div class="composer">
+      <div class="icebreakers" id="icebreakers">
+        <button class="icebreaker" onclick="sendIcebreaker(this)">What's your favorite sober activity?</button>
+        <button class="icebreaker" onclick="sendIcebreaker(this)">How has recovery changed your weekends?</button>
+        <button class="icebreaker" onclick="sendIcebreaker(this)">Coffee or hike this weekend?</button>
+      </div>
+      <div class="emoji-picker" id="emojiPicker" role="listbox" aria-label="Emoji"></div>
+      <div class="composer-row">
+        <button class="tool-btn" id="emojiBtn" onmousedown="event.preventDefault()" onclick="toggleEmoji()" title="Emoji" aria-label="Emoji"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+        <button class="tool-btn" id="photoBtn" onclick="requirePhotoAccess(() => document.getElementById('chatPhotoInput').click())" title="Send a photo" aria-label="Send a photo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+        <input class="input" id="chatInput" placeholder="Message..." style="margin:0; flex:1; padding:12px 14px;" enterkeyhint="send" autocomplete="off">
+        <button class="btn send-btn" onclick="sendMessage()">Send</button>
+      </div>
+      <input type="file" id="chatPhotoInput" accept="image/*" style="display:none;" onchange="sendChatPhoto(this)">
+    </div>
+    <div class="nav"></div>
+  </div>
+
+  <!-- Events -->
+  <div id="events" class="screen has-nav">
+    <header>
+      <div class="logo">Sober Events</div>
+      <button class="btn" style="width:auto; padding:8px 14px; margin:0; font-size:14px;" onclick="showScreen('createEvent')">+ Add</button>
+    </header>
+    <div class="content">
+      <h2 style="font-size:22px; margin:0 0 4px;">Upcoming gatherings</h2>
+      <p class="muted" style="margin-bottom:16px;">Alcohol-free meetups near you</p>
+      <div id="eventsList"></div>
+    </div>
+    <div class="nav"></div>
+  </div>
+
+  <!-- Profile -->
+  <div id="profile" class="screen has-nav">
+    <header><div class="logo">You</div></header>
+    <div class="content">
+      <div class="profile-img" style="height:300px; cursor:default; touch-action:auto;" id="userProfileImg">
+        <div class="profile-info">
+          <div class="profile-name" id="userNameDisplay">Your Name</div>
+          <div class="badge" id="userBadge">Complete your profile</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <h3>Sobriety</h3>
+        <div class="progress"><div class="progress-bar" id="soberProgress" style="width:0%"></div></div>
+        <p class="muted" id="soberText">Shared only with matches.</p>
+      </div>
+      <div class="card" id="userDetailsCard">
+        <p id="userBio" style="margin-bottom:4px;"></p>
+        <div class="detail-grid" id="userDetails" style="margin-top:8px;"></div>
+      </div>
+      <button class="btn secondary" onclick="openEditProfile()">Edit Profile</button>
+      <button class="btn secondary" onclick="showScreen('settings')">Settings</button>
+      <button class="btn danger" onclick="logout()">Log Out</button>
+    </div>
+    <div class="nav"></div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settings" class="screen">
+    <header>
+      <button class="icon-btn" onclick="showScreen('profile')">←</button>
+      <div class="logo">Settings</div>
+      <div style="width:38px;"></div>
+    </header>
+    <div class="content">
+      <div class="card" style="text-align:center; background:linear-gradient(135deg,#ccfbf1,#a7f3d0); border:none;">
+        <div style="font-size:36px; margin-bottom:8px;">∞</div>
+        <h2 style="margin:0 0 6px;">Unlimited Likes</h2>
+        <p class="muted">Swipe freely. Free accounts get 25 likes/day.</p>
+      </div>
+      <div class="card" style="border:2px solid var(--accent);">
+        <h3>Yearly — $49.99</h3>
+        <p class="muted">Just $4.17/month · Save 58%</p>
+        <button class="btn" onclick="toast('Purchases are disabled in the prototype')">Get Yearly</button>
+      </div>
+      <div class="card">
+        <h3>Monthly — $9.99</h3>
+        <p class="muted">Cancel anytime</p>
+        <button class="btn secondary" onclick="toast('Purchases are disabled in the prototype')">Get Monthly</button>
+      </div>
+      <div class="card">
+        <h3>Weekly — $3.99</h3>
+        <p class="muted">Flexible short-term</p>
+        <button class="btn secondary" onclick="toast('Purchases are disabled in the prototype')">Get Weekly</button>
+      </div>
+      <div class="card" id="cloudCard">
+        <h3>Saved in cloud <span class="muted" style="font-size:12px; font-weight:600;">(beta test)</span></h3>
+        <p class="muted" id="cloudAccount" style="font-size:13px; margin-bottom:8px;">Not signed in</p>
+        <div id="cloudData" style="font-size:13px;" class="muted">Tap Refresh to read your profile back from Firestore.</div>
+        <button class="btn secondary" style="margin-top:10px;" onclick="refreshCloudPanel()">Refresh from cloud</button>
+      </div>
+      <button class="btn danger" onclick="logout()">Log Out</button>
+      <button class="btn secondary" onclick="resetDemo()">Clear local cache</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div id="filters" class="screen">
+    <header>
+      <button class="icon-btn" onclick="showScreen('discover')">←</button>
+      <div class="logo">Filters</div>
+      <div style="width:38px;"></div>
+    </header>
+    <div class="content">
+      <label class="muted">Maximum distance: <strong id="distLabel" style="color:var(--accent-dark);">25 miles</strong></label>
+      <div class="dist-wrap">
+        <div class="dist-bubble" id="distBubble">25 mi</div>
+        <input type="range" min="1" max="100" value="25" id="filterDistance" style="width:100%; margin:0; accent-color:var(--accent);" oninput="updateDistance()">
+        <div class="dist-ticks"><span>1 mi</span><span>25</span><span>50</span><span>75</span><span>100 mi</span></div>
+      </div>
+      <label class="muted">Age range</label>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <input class="input" type="number" value="18" min="18" id="filterAgeMin" style="flex:1;">
+        <input class="input" type="number" value="99" min="18" id="filterAgeMax" style="flex:1;">
+      </div>
+      <select class="input" id="filterGender"><option value="">Any gender</option><option>Male</option><option>Female</option><option>Trans</option><option>Non-binary</option></select>
+      <select class="input" id="filterProgram"><option value="">Any program</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>None</option><option>Other</option></select>
+      <div class="filter-row">
+        <select class="input" id="filterKids" aria-label="Kids"><option value="">Kids: any</option><option value="No kids">No kids</option><option value="Has kids">Has kids</option><option value="Wants kids">Wants kids</option></select>
+        <select class="input" id="filterSmoker" aria-label="Smoking"><option value="">Smoking: any</option><option>Non-smoker</option><option>Occasionally</option><option>Smoker</option></select>
+      </div>
+      <button class="btn" onclick="applyFilters()">Apply</button>
+      <button class="btn secondary" onclick="resetFilters()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Create account (beta: real Firebase Auth) -->
+  <div id="account" class="screen">
+    <header><button class="icon-btn" onclick="showScreen('onboarding')">←</button><div class="logo">Create account</div><div style="width:38px;"></div></header>
+    <div class="content">
+      <h2 style="font-size:24px; margin-bottom:6px;">Join Clean Date</h2>
+      <p class="muted" style="margin-bottom:16px;">First, create your account. Next you'll build your profile.</p>
+      <button class="btn google" onclick="googleSignIn('signupError')"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> Continue with Google</button>
+      <div class="auth-or">or sign up with email</div>
+      <input class="input" id="signupEmail" type="email" placeholder="Email" autocomplete="email">
+      <input class="input" id="signupPassword" type="password" placeholder="Password (at least 6 characters)" autocomplete="new-password">
+      <div class="auth-err" id="signupError"></div>
+      <button class="btn" id="signupBtn" onclick="createAccount()">Create account</button>
+      <p class="muted" style="margin-top:10px; font-size:14px;">Already have an account? <button class="link-btn" onclick="showScreen('login')">Log in</button></p>
+    </div>
+  </div>
+
+  <!-- Login -->
+  <div id="login" class="screen">
+    <header><button class="icon-btn" onclick="showScreen('onboarding')">←</button><div class="logo">Log In</div><div style="width:38px;"></div></header>
+    <div class="content">
+      <h2 style="font-size:24px; margin-bottom:6px;">Welcome back</h2>
+      <p class="muted" style="margin-bottom:16px;">Good to see you again.</p>
+      <button class="btn google" onclick="googleSignIn('loginError')"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> Continue with Google</button>
+      <div class="auth-or">or</div>
+      <input class="input" id="loginEmail" type="email" placeholder="Email" autocomplete="email">
+      <input class="input" id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
+      <div class="auth-err" id="loginError"></div>
+      <button class="btn" id="loginBtn" onclick="doLogin()">Log In</button>
+      <button class="link-btn" onclick="forgotPassword()">Forgot password?</button>
+      <p class="muted" style="margin-top:10px; font-size:14px;">New here? <button class="link-btn" onclick="startSignup()">Create an account</button></p>
+    </div>
+  </div>
+
+  <!-- Create Event -->
+  <!-- Event attendees -->
+  <div id="eventAttendees" class="screen">
+    <header><button class="icon-btn" onclick="showScreen('events')">←</button><div class="logo" id="attendeesTitle">Who's going</div><div style="width:38px;"></div></header>
+    <div class="content" id="attendeesList"></div>
+  </div>
+
+  <div id="createEvent" class="screen">
+    <header><button class="icon-btn" onclick="showScreen('events')">←</button><div class="logo">New Event</div><div style="width:38px;"></div></header>
+    <div class="content">
+      <input class="input" id="eventTitle" placeholder="Event title">
+      <input class="input" id="eventDate" placeholder="Date & time">
+      <input class="input" id="eventLocation" placeholder="Location">
+      <textarea class="input" id="eventDesc" placeholder="Description" rows="3"></textarea>
+      <button class="btn" onclick="addEvent()">Post Event</button>
+    </div>
+  </div>
+
+  <!-- Photo action sheet -->
+  <div class="sheet-bg" id="photoSheet" onclick="if(event.target===this) closeSheet()">
+    <div class="sheet">
+      <button class="btn" onclick="sheetReplace()">Replace photo</button>
+      <button class="btn secondary" id="sheetMainBtn" onclick="sheetMakeMain()">Make main photo</button>
+      <button class="btn danger" onclick="sheetRemove()">Remove photo</button>
+      <button class="btn secondary" onclick="closeSheet()">Cancel</button>
+    </div>
+  </div>
+  <!-- Voice / video call (mock) -->
+  <div class="call-screen" id="callScreen" aria-modal="true" role="dialog">
+    <div class="call-remote" id="callRemote"></div>
+    <div class="self-view" id="selfView">
+      <video id="selfVideo" autoplay muted playsinline></video>
+      <div class="self-ph" id="selfPh"><span style="font-size:22px;">📷</span><span id="selfPhText">Camera off</span></div>
+    </div>
+    <div class="call-top">
+      <div class="call-avatar" id="callAvatar"></div>
+      <div class="call-name" id="callName">Jordan</div>
+      <div class="call-status" id="callStatus">Calling…</div>
+      <div class="call-kind" id="callKind">Clean Date voice call</div>
+    </div>
+    <div class="call-controls">
+      <div class="call-toggles">
+        <button class="call-tg" id="tgMute" onclick="callToggle('mute')"><span class="c"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></span><span class="l">Mute</span></button>
+        <button class="call-tg" id="tgCam" onclick="callToggle('cam')"><span class="c"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span><span class="l">Camera</span></button>
+        <button class="call-tg" id="tgSpk" onclick="callToggle('spk')"><span class="c"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span><span class="l">Speaker</span></button>
+      </div>
+      <button class="call-end" id="endCallBtn" onclick="endCall()" aria-label="End call"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .4-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85a1 1 0 0 1-1.4-.02L.29 13.08a1 1 0 0 1 0-1.41C3.34 8.77 7.46 7 12 7s8.66 1.77 11.71 4.67a1 1 0 0 1 0 1.41l-2.48 2.48a1 1 0 0 1-1.4.02 11.3 11.3 0 0 0-2.67-1.85 1 1 0 0 1-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg></button>
+    </div>
+  </div>
+  <!-- Generic action sheet (match menu, report reasons, photo permission) -->
+  <div class="sheet-bg" id="actionSheet" onclick="if(event.target===this) closeActionSheet()">
+    <div class="sheet" id="actionSheetBody"></div>
+  </div>
+  <!-- Full-screen photo viewer -->
+  <div class="viewer" id="photoViewer" onclick="if(event.target===this) closeViewer()">
+    <button class="icon-btn" aria-label="Close" onclick="closeViewer()">✕</button>
+    <img id="viewerImg" alt="">
+    <button class="v-nav v-prev" aria-label="Previous photo" onclick="viewerStep(-1)">‹</button>
+    <button class="v-nav v-next" aria-label="Next photo" onclick="viewerStep(1)">›</button>
+    <div class="v-count" id="viewerCount">1 / 1</div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+const STORAGE_KEY = 'cleandate_beta_v1'; // separate from the live app's 'cleandate_v2' (same origin)
+// Safe storage: some phone browsers (e.g. files opened from Android's Files app) block localStorage.
+// Fall back to sessionStorage, then to memory, so the app always keeps working.
+const store = (() => {
+  const mem = {};
+  const memStore = { getItem: k => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); }, removeItem: k => { delete mem[k]; }, persistent: false };
+  for (const name of ['localStorage', 'sessionStorage']) {
+    try {
+      const st = window[name];
+      const t = '__cd_test__';
+      st.setItem(t, '1'); st.removeItem(t);
+      return { getItem: k => st.getItem(k), setItem: (k, v) => st.setItem(k, v), removeItem: k => st.removeItem(k), persistent: true };
+    } catch (e) {}
+  }
+  return memStore;
+})();
+const DEFAULT_EVENTS = [
+  { id: 'e1', title: 'Morning Hike + Coffee', date: 'This Saturday', location: 'Local trails', desc: 'Low-pressure group hike followed by coffee.', emoji: '🥾', gradient: 'linear-gradient(135deg,#10b981,#34d399)', interested: 4, going: false },
+  { id: 'e2', title: 'Board Game Night', date: 'Next Friday', location: 'Downtown café', desc: 'Alcohol-free social. Bring a game or just yourself.', emoji: '🎲', gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)', interested: 3, going: false }
+];
+const DEFAULT_FILTERS = { distance: 25, ageMin: 18, ageMax: 99, gender: '', program: '', kids: '', smoker: '' };
+
+let state = {
+  user: null,
+  loggedIn: false,
+  current: 0,
+  matches: [],
+  chats: {},
+  filters: { ...DEFAULT_FILTERS },
+  events: JSON.parse(JSON.stringify(DEFAULT_EVENTS))
+};
+
+const profiles = [
+  { name: "Alex", age: 28, sober: "1 year sober", bio: "Hiking, coffee dates, board games, and early mornings. Looking for someone who gets that life is better without the hangover.", tags: ["Hiking","Coffee","Recovery","Outdoors"], kids: "No kids", height: "5'10\"", smoker: "Non-smoker", job: "Graphic Designer", location: "Austin, TX", looking: ["Dating","Long-term"], program: "AA", gender: "Male", photos: [
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&h=1000&fit=crop"
+  ] },
+  { name: "Taylor", age: 31, sober: "6 months sober", bio: "Looking for someone who prefers sunrise hikes over late nights. Sober and proud.", tags: ["Outdoors","Reading","Fitness"], kids: "1 kid (part-time)", height: "5'7\"", smoker: "Non-smoker", job: "Nurse", location: "Denver, CO", looking: ["Dating"], program: "NA", gender: "Female", photos: [
+    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=1000&fit=crop"
+  ] },
+  { name: "Morgan", age: 26, sober: "2 years sober", bio: "Sober curious turned committed. Love cooking and live music (the early sets).", tags: ["Cooking","Music","Art"], kids: "No kids", height: "5'4\"", smoker: "Non-smoker", job: "Marketing Manager", location: "Portland, OR", looking: ["Dating","Long-term"], program: "None", gender: "Trans", photos: [
+    "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&h=1000&fit=crop"
+  ] },
+  { name: "Riley", age: 29, sober: "8 months sober", bio: "Coffee enthusiast, trail runner, and recovery advocate. Let's build something real.", tags: ["Running","Coffee","Community"], kids: "Wants kids someday", height: "6'1\"", smoker: "Non-smoker", job: "Software Engineer", location: "Seattle, WA", looking: ["Dating"], program: "Other", gender: "Male", photos: [
+    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1463453091185-61582044d556?w=800&h=1000&fit=crop"
+  ] },
+  { name: "Sophia", age: 27, sober: "1.5 years sober", bio: "Love hiking, yoga, and good coffee. Looking for genuine connections.", tags: ["Yoga","Hiking","Coffee","Travel"], kids: "No kids", height: "5'6\"", smoker: "Non-smoker", job: "Yoga Instructor", location: "Austin, TX", looking: ["Dating","Long-term"], program: "AA", gender: "Female", photos: [
+    "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?w=800&h=1000&fit=crop"
+  ] },
+  { name: "Jordan", age: 30, sober: "2 years sober", bio: "Early riser, board game nerd, and proud of every sober day. Looking for something real.", tags: ["Board games","Hiking","Recovery"], kids: "No kids", height: "5'11\"", smoker: "Non-smoker", job: "Teacher", location: "Austin, TX", looking: ["Dating","Long-term"], program: "AA", gender: "Male", photos: [
+    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop",
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&h=1000&fit=crop"
+  ] }
+];
+
+const NAV_ICON_CARDS = `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+  <rect x="4" y="5" width="13" height="17" rx="2.5" transform="rotate(-12 10.5 13.5)"/>
+  <rect x="11" y="5" width="13" height="17" rx="2.5" transform="rotate(8 17.5 13.5)"/>
+</svg>`;
+let cloudProfiles = []; // real members loaded from Firestore (beta)
+const TAB_FOR_SCREEN = { discover: 'discover', matches: 'matches', chat: 'matches', events: 'events', eventAttendees: 'events', profile: 'profile' };
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+function cssUrl(u) { return `url("${String(u).replace(/"/g, '%22')}")`; }
+
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function renderNavs() {
+  document.querySelectorAll('.nav').forEach(nav => {
+    nav.innerHTML = `
+      <button data-tab="discover" onclick="showScreen('discover')" aria-label="Discover">${NAV_ICON_CARDS}</button>
+      <button data-tab="matches" onclick="showScreen('matches')" aria-label="Matches">💬</button>
+      <button data-tab="events" onclick="showScreen('events')" aria-label="Events">📅</button>
+      <button data-tab="profile" onclick="showScreen('profile')" aria-label="Profile">👤</button>`;
+  });
+}
+
+function loadState() {
+  try {
+    const saved = store.getItem(STORAGE_KEY);
+    if (saved) {
+      const s = JSON.parse(saved);
+      Object.assign(state, s);
+    }
+  } catch (e) { console.warn('Could not load saved state', e); }
+  // migrate / sanitize older saves
+  state.matches = Array.isArray(state.matches) ? state.matches : [];
+  const seen = new Set();
+  state.matches = state.matches.filter(m => m && m.name && !seen.has(m.name) && seen.add(m.name));
+  state.chats = state.chats && typeof state.chats === 'object' ? state.chats : {};
+  state.removed = Array.isArray(state.removed) ? state.removed : [];
+  state.filters = { ...DEFAULT_FILTERS, ...(state.filters || {}) };
+  if (!Array.isArray(state.events) || !state.events.length) state.events = JSON.parse(JSON.stringify(DEFAULT_EVENTS));
+  state.events.forEach((e, i) => { if (!e.id) e.id = 'e' + Date.now() + i; if (typeof e.going !== 'boolean') e.going = false; });
+  if (state.user && state.loggedIn === undefined) state.loggedIn = true;
+  if (state.user && !Array.isArray(state.user.photos)) state.user.photos = [];
+}
+function saveState() {
+  try {
+    store.setItem(STORAGE_KEY, JSON.stringify(state));
+    return true;
+  } catch (e) {
+    console.warn('Save failed', e);
+    const isQuota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
+    // Only warn once, and only when it's genuinely about too many photos.
+    if (isQuota && !saveState.warned && state.user && (state.user.photos || []).length) {
+      saveState.warned = true;
+      toast('Too many photos to save — try removing one');
+    }
+    return false;
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('active');
+  const tab = TAB_FOR_SCREEN[id];
+  el.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  const content = el.querySelector('.content');
+  if (content && id !== 'chat') content.scrollTop = 0;
+  el.scrollTop = 0;
+  const phone = document.querySelector('.phone');
+  if (phone) phone.scrollTop = 0;
+  window.scrollTo(0, 0);
+  if (id === 'discover') loadProfile();
+  if (id === 'matches') renderMatches();
+  if (id === 'events') renderEvents();
+  if (id === 'profile') updateProfileUI();
+}
+
+/* ---------- Photos (shared by signup + edit) ---------- */
+let signupPhotos = [];
+let editPhotos = [];
+let photoTarget = null; // { list: 'signup'|'edit', index }
+function photoList(which) { return which === 'edit' ? editPhotos : signupPhotos; }
+
+function renderPhotoGrid(which) {
+  const grid = document.getElementById(which === 'edit' ? 'editPhotoGrid' : 'photoGrid');
+  if (!grid) return;
+  const list = photoList(which);
+  grid.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'photo-slot' + (list[i] ? ' filled' : '');
+    if (list[i]) {
+      slot.innerHTML = `<img src="${esc(list[i])}" alt="">` + (i === 0 ? '<span class="main-tag">MAIN</span>' : '');
+      slot.onclick = () => openSheet(which, i);
+    } else {
+      slot.innerHTML = '+';
+      slot.onclick = () => pickPhoto(which, list.length); // fill next free slot
+    }
+    grid.appendChild(slot);
+  }
+}
+function pickPhoto(which, index) {
+  photoTarget = { which, index };
+  requirePhotoAccess(() => {
+    const input = document.getElementById('photoInput');
+    input.value = '';
+    input.click();
+  });
+}
+// V1-style permission prompt before opening the photo library (remembered once allowed)
+let photoAccessCb = null;
+function requirePhotoAccess(cb) {
+  if (state.photoAccess) return cb();
+  photoAccessCb = cb;
+  openActionSheet(`<div class="grab"></div><div class="perm-ic">🖼️</div>
+    <h3>Allow access to your photos?</h3>
+    <p class="sub">Clean Date uses your photo library only to add pictures you choose.</p>
+    <button class="btn" id="permAllow" onclick="photoAccessAnswer(true)">Allow access</button>
+    <button class="btn secondary" id="permDeny" onclick="photoAccessAnswer(false)">Not now</button>`);
+}
+function photoAccessAnswer(ok) {
+  closeActionSheet();
+  const cb = photoAccessCb; photoAccessCb = null;
+  if (!ok) { toast('Photo access is needed to add pictures'); return; }
+  state.photoAccess = true;
+  saveState();
+  if (cb) cb();
+}
+function resizeImage(file, max = 600, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function handlePhotoFile(input) {
+  const file = input.files && input.files[0];
+  if (!file || !photoTarget) return;
+  try {
+    const url = await resizeImage(file);
+    const list = photoList(photoTarget.which);
+    list[Math.min(photoTarget.index, list.length)] = url;
+    renderPhotoGrid(photoTarget.which);
+  } catch (e) {
+    toast('Could not read that image');
+  }
+  input.value = '';
+}
+let sheetTarget = null;
+function openSheet(which, index) {
+  sheetTarget = { which, index };
+  document.getElementById('sheetMainBtn').style.display = index === 0 ? 'none' : '';
+  document.getElementById('photoSheet').classList.add('show');
+}
+function closeSheet() { document.getElementById('photoSheet').classList.remove('show'); }
+function sheetReplace() { closeSheet(); pickPhoto(sheetTarget.which, sheetTarget.index); }
+function sheetRemove() {
+  closeSheet();
+  photoList(sheetTarget.which).splice(sheetTarget.index, 1);
+  renderPhotoGrid(sheetTarget.which);
+}
+function sheetMakeMain() {
+  closeSheet();
+  const list = photoList(sheetTarget.which);
+  const [p] = list.splice(sheetTarget.index, 1);
+  list.unshift(p);
+  renderPhotoGrid(sheetTarget.which);
+}
+
+/* ---------- Signup ---------- */
+let currentSignupStep = 1;
+const SIGNUP_TITLES = ['Create your profile', 'Your sobriety', 'Add photos', 'What are you looking for?'];
+function startSignup() {
+  if (!window.CD || !window.CD.currentUser()) { clearAuthErrors(); showScreen('account'); return; }
+  beginProfileSteps();
+}
+function beginProfileSteps(prefill) {
+  if (prefill && prefill.name && !document.getElementById('name').value) document.getElementById('name').value = prefill.name;
+  currentSignupStep = 1;
+  signupPhotos = [];
+  renderPhotoGrid('signup');
+  updateSignupStep();
+  showScreen('signup');
+}
+function updateSignupStep() {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('signupStep' + i).style.display = (i === currentSignupStep) ? 'block' : 'none';
+  }
+  document.getElementById('signupStepLabel').textContent = currentSignupStep + ' / 4';
+  document.getElementById('signupProgress').style.width = (currentSignupStep * 25) + '%';
+  document.getElementById('signupTitle').textContent = SIGNUP_TITLES[currentSignupStep - 1];
+  document.querySelector('#signup .content').scrollTop = 0;
+}
+function signupNext(from) {
+  if (from === 1) {
+    const age = parseInt(document.getElementById('age').value, 10);
+    if (!document.getElementById('name').value.trim() || !age) return toast('Name and age are required');
+    if (age < 18) return toast('You must be 18 or older');
+  }
+  if (from === 2 && !document.getElementById('sobriety').value) return toast('Please select how long you’ve been sober');
+  currentSignupStep = from + 1;
+  updateSignupStep();
+  if (currentSignupStep === 3) renderPhotoGrid('signup');
+}
+function signupPrev() {
+  if (currentSignupStep > 1) { currentSignupStep--; updateSignupStep(); }
+  else showScreen('onboarding');
+}
+function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function completeSignup() {
+  state.user = {
+    name: val('name') || 'You',
+    age: parseInt(val('age'), 10) || 27,
+    gender: val('gender'),
+    location: val('locationInput'),
+    job: val('jobInput'),
+    height: val('heightInput'),
+    kids: val('kidsInput'),
+    smoker: val('smokerInput'),
+    stillUse: Array.from(document.querySelectorAll('.stilluse-cb:checked')).map(cb => cb.value).join(', '),
+    sober: val('sobriety') || 'Sober curious',
+    program: val('programInput'),
+    photos: signupPhotos.slice(0, 6),
+    bio: val('bioInput'),
+    looking: Array.from(document.querySelectorAll('.intent-cb:checked')).map(cb => cb.value)
+  };
+  state.loggedIn = true;
+  if (!saveState()) { state.user.photos = state.user.photos.slice(0, 1); saveState(); }
+  updateProfileUI();
+  showScreen('discover');
+  if (!window.CD) { toast('Saved on this device only — cloud not ready'); return; }
+  window.CD.saveProfile(state.user, true)
+    .then(() => toast('Welcome to Clean Date, ' + state.user.name + '! Saved to cloud ✓'))
+    .catch(e => { console.error(e); toast('Could not save to cloud: ' + friendlyError(e)); });
+}
+
+/* ---------- Edit profile ---------- */
+function openEditProfile() {
+  const u = state.user || {};
+  const set = (id, v) => { document.getElementById(id).value = v || ''; };
+  set('editName', u.name); set('editAge', u.age); set('editGender', u.gender); set('editLocation', u.location);
+  set('editJob', u.job); set('editHeight', u.height); set('editKids', u.kids); set('editSmoker', u.smoker);
+  set('editSobriety', u.sober); set('editProgram', u.program); set('editBio', u.bio);
+  document.querySelectorAll('.edit-stilluse').forEach(cb => { cb.checked = (u.stillUse || '').split(', ').includes(cb.value); });
+  document.querySelectorAll('.edit-intent').forEach(cb => { cb.checked = (u.looking || []).includes(cb.value); });
+  editPhotos = (u.photos || []).slice();
+  renderPhotoGrid('edit');
+  showScreen('editProfile');
+}
+function saveEditProfile() {
+  const age = parseInt(val('editAge'), 10);
+  if (!val('editName') || !age) return toast('Name and age are required');
+  const prev = state.user;
+  state.user = {
+    ...(prev || {}),
+    name: val('editName'),
+    age,
+    gender: val('editGender'),
+    location: val('editLocation'),
+    job: val('editJob'),
+    height: val('editHeight'),
+    kids: val('editKids'),
+    smoker: val('editSmoker'),
+    stillUse: Array.from(document.querySelectorAll('.edit-stilluse:checked')).map(cb => cb.value).join(', '),
+    sober: val('editSobriety') || 'Sober curious',
+    program: val('editProgram'),
+    photos: editPhotos.slice(0, 6),
+    bio: val('editBio'),
+    looking: Array.from(document.querySelectorAll('.edit-intent:checked')).map(cb => cb.value)
+  };
+  state.loggedIn = true;
+  if (!saveState()) { state.user = prev; return; }
+  showScreen('profile');
+  if (!window.CD) { toast('Profile updated on this device only'); return; }
+  toast('Saving…');
+  window.CD.saveProfile(state.user, false)
+    .then(() => toast('Profile saved to cloud ✓'))
+    .catch(e => { console.error(e); toast('Could not save to cloud: ' + friendlyError(e)); });
+}
+
+const SOBER_PROGRESS = { 'Sober curious': 10, 'Under 6 months': 25, '6 months – 1 year': 45, '1–2 years': 65, '2–5 years': 85, '5+ years': 100 };
+function updateProfileUI() {
+  const u = state.user;
+  const img = document.getElementById('userProfileImg');
+  if (!u) {
+    document.getElementById('userNameDisplay').textContent = 'Your Name';
+    document.getElementById('userBadge').textContent = 'Complete your profile';
+    img.style.backgroundImage = 'linear-gradient(135deg,#0d9488,#5eead4)';
+    document.getElementById('soberProgress').style.width = '0%';
+    document.getElementById('soberText').textContent = 'Shared only with matches.';
+    document.getElementById('userBio').textContent = 'Tap Edit Profile to add your details and photos.';
+    document.getElementById('userDetails').innerHTML = '';
+    return;
+  }
+  document.getElementById('userNameDisplay').textContent = u.name + (u.age ? ', ' + u.age : '');
+  document.getElementById('userBadge').textContent = /curious|sober/i.test(u.sober) ? u.sober : u.sober + ' sober';
+  img.style.backgroundImage = (u.photos && u.photos[0]) ? cssUrl(u.photos[0]) : 'linear-gradient(135deg,#0d9488,#5eead4)';
+  document.getElementById('soberProgress').style.width = (SOBER_PROGRESS[u.sober] || 50) + '%';
+  document.getElementById('soberText').textContent = u.sober + '. Shared only with matches.';
+  document.getElementById('userBio').textContent = u.bio || 'No bio yet — add one in Edit Profile.';
+  const rows = [['Gender', u.gender], ['Location', u.location], ['Work', u.job], ['Height', u.height], ['Kids', u.kids], ['Smoking', u.smoker], ['Still use', u.stillUse], ['Program', u.program], ['Photos', (u.photos || []).length + ' / 6']];
+  document.getElementById('userDetails').innerHTML = rows.map(([k, v]) => `<div><span class="muted">${k}</span><br><strong>${esc(v || '—')}</strong></div>`).join('') +
+    `<div style="grid-column:1/-1;"><span class="muted">Intentions</span><br><strong>${esc((u.looking || []).join(', ') || '—')}</strong></div>`;
+}
+
+/* ---------- Discover ---------- */
+function programMatches(p, f) {
+  if (!f) return true;
+  if (f === 'None') return /^None/.test(p);
+  return p === f;
+}
+function kidsMatches(k, f) {
+  if (!f) return true;
+  k = k || '';
+  if (f === 'No kids') return /^No kids/i.test(k);
+  if (f === 'Wants kids') return /wants/i.test(k);
+  if (f === 'Has kids') return /\bkids?\b/i.test(k) && !/^No kids/i.test(k) && !/wants/i.test(k);
+  return k === f;
+}
+function filteredProfiles() {
+  const f = state.filters;
+  const hidden = new Set(state.removed || []);
+  return cloudProfiles.concat(profiles).filter(p => !hidden.has(p.name) && p.age >= (f.ageMin || 18) && p.age <= (f.ageMax || 99) && (!f.gender || p.gender === f.gender) && programMatches(p.program, f.program) && kidsMatches(p.kids, f.kids) && (!f.smoker || p.smoker === f.smoker));
+}
+function currentProfile() {
+  const list = filteredProfiles();
+  if (!list.length) return null;
+  return list[((state.current % list.length) + list.length) % list.length];
+}
+function loadProfile() {
+  const p = currentProfile();
+  document.getElementById('discoverEmpty').style.display = p ? 'none' : 'block';
+  document.getElementById('discoverBody').style.display = p ? 'block' : 'none';
+  if (!p) return;
+  const card = document.getElementById('profileCard');
+  document.getElementById('cardName').textContent = p.name + ', ' + p.age;
+  document.getElementById('cardSober').textContent = p.sober;
+  document.getElementById('bioText').textContent = p.bio;
+  document.getElementById('tags').innerHTML = (p.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join('');
+  ['kids', 'height', 'smoker', 'job', 'location', 'program'].forEach(k => { document.getElementById(k).textContent = p[k] || '—'; });
+  document.getElementById('cardGender').textContent = p.gender || '—';
+  document.getElementById('looking').textContent = (p.looking || []).join(', ') || '—';
+  const gallery = document.getElementById('photoGallery');
+  card.style.backgroundImage = p.photos && p.photos.length ? cssUrl(p.photos[0]) : 'linear-gradient(135deg,#0d9488,#5eead4)';
+  cardPhotoIdx = 0;
+  gallery.innerHTML = (p.photos || []).map((url, i) => `<img src="${esc(url)}" class="${i === 0 ? 'sel' : ''}" onclick="setMainPhoto(${i})" alt="">`).join('');
+  resetCard();
+}
+let cardPhotoIdx = 0;
+function resetCard() {
+  const card = document.getElementById('profileCard');
+  card.style.transition = 'none';
+  card.style.transform = '';
+  card.querySelector('.swipe-hint.like').style.opacity = '0';
+  card.querySelector('.swipe-hint.nope').style.opacity = '0';
+  void card.offsetWidth;
+  card.style.transition = '';
+}
+function setMainPhoto(i) {
+  const p = currentProfile();
+  if (!p) return;
+  cardPhotoIdx = i;
+  document.getElementById('profileCard').style.backgroundImage = cssUrl(p.photos[i]);
+  document.querySelectorAll('#photoGallery img').forEach((img, j) => img.classList.toggle('sel', j === i));
+}
+function nextProfile() {
+  state.current = (state.current + 1) % Math.max(1, filteredProfiles().length);
+  saveState();
+  loadProfile();
+}
+
+let swipeLocked = false;
+let lastMatchIndex = -1;
+function swipeRight() {
+  const p = currentProfile();
+  if (!p || swipeLocked) return;
+  const already = state.matches.findIndex(m => m.name === p.name);
+  const isMatch = window.__forceMatch !== undefined ? window.__forceMatch : Math.random() > 0.55;
+  if (isMatch && already === -1) {
+    state.matches.push({ name: p.name, sober: p.sober, photo: (p.photos || [])[0] || '' });
+    lastMatchIndex = state.matches.length - 1;
+    saveState();
+    document.getElementById('matchName').textContent = p.name;
+    document.getElementById('matchPhoto').style.backgroundImage = (p.photos || [])[0] ? cssUrl(p.photos[0]) : 'linear-gradient(135deg,#0d9488,#5eead4)';
+    animateSwipe(true, false);
+    setTimeout(() => document.getElementById('matchOverlay').classList.add('show'), 250);
+  } else {
+    animateSwipe(true, true);
+  }
+}
+function swipeLeft() { if (!swipeLocked && currentProfile()) animateSwipe(false, true); }
+function animateSwipe(liked, advance = true) {
+  const card = document.getElementById('profileCard');
+  swipeLocked = true;
+  card.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)';
+  card.style.transform = liked ? 'translateX(420px) rotate(18deg)' : 'translateX(-420px) rotate(-18deg)';
+  card.querySelector('.swipe-hint.like').style.opacity = liked ? '1' : '0';
+  card.querySelector('.swipe-hint.nope').style.opacity = liked ? '0' : '1';
+  if (advance) setTimeout(() => { swipeLocked = false; nextProfile(); }, 380);
+}
+function closeMatch() {
+  document.getElementById('matchOverlay').classList.remove('show');
+  swipeLocked = false;
+  nextProfile(); // also resets the card
+}
+function goToChat() {
+  const idx = lastMatchIndex;
+  closeMatch();
+  if (idx >= 0) openChat(idx);
+}
+
+// Swipe gesture
+const card = document.getElementById('profileCard');
+let startX = 0, currentX = 0, dragging = false, moved = false;
+function pointX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+function onStart(e) {
+  if (swipeLocked || e.target.closest('#photoGallery, button')) return;
+  if (e.type === 'mousedown' && e.button !== 0) return;
+  dragging = true; moved = false;
+  currentX = 0;
+  startX = pointX(e);
+  card.classList.add('dragging');
+}
+function onMove(e) {
+  if (!dragging) return;
+  currentX = pointX(e) - startX;
+  if (Math.abs(currentX) > 4) moved = true;
+  card.style.transform = `translateX(${currentX}px) rotate(${currentX * 0.04}deg)`;
+  card.querySelector('.swipe-hint.like').style.opacity = Math.min(1, Math.max(0, currentX / 100));
+  card.querySelector('.swipe-hint.nope').style.opacity = Math.min(1, Math.max(0, -currentX / 100));
+}
+function onEnd() {
+  if (!dragging) return;
+  dragging = false;
+  card.classList.remove('dragging');
+  const dx = currentX;
+  currentX = 0;
+  if (dx > 110) swipeRight();
+  else if (dx < -110) swipeLeft();
+  else {
+    card.style.transform = '';
+    card.querySelector('.swipe-hint.like').style.opacity = '0';
+    card.querySelector('.swipe-hint.nope').style.opacity = '0';
+  }
+}
+card.addEventListener('click', e => {
+  if (moved || swipeLocked || e.target.closest('button')) return;
+  const p = currentProfile();
+  if (p && p.photos && p.photos.length) openViewer(p.photos[cardPhotoIdx] || p.photos[0], p.photos, cardPhotoIdx);
+});
+card.addEventListener('mousedown', onStart);
+card.addEventListener('touchstart', onStart, { passive: true });
+window.addEventListener('mousemove', onMove);
+window.addEventListener('touchmove', onMove, { passive: true });
+window.addEventListener('mouseup', onEnd);
+window.addEventListener('touchend', onEnd);
+window.addEventListener('touchcancel', onEnd);
+
+/* ---------- Matches & chat ---------- */
+const GREETING = "Hey! Saw you're into recovery and real connection. How's your week going?";
+const REPLIES = ["That sounds great! 😊", "Love that. I've been doing a lot of morning walks lately.", "Ha, same here! Coffee this weekend?", "Recovery has honestly made my weekends so much better.", "Tell me more!"];
+function chatFor(name) {
+  if (!state.chats[name]) state.chats[name] = [{ from: 'them', text: GREETING }];
+  return state.chats[name];
+}
+function renderMatches() {
+  const nm = document.getElementById('newMatches');
+  const ml = document.getElementById('messagesList');
+  const idxs = state.matches.map((m, i) => i);
+  nm.innerHTML = idxs.slice(-6).reverse().map(i => {
+    const m = state.matches[i];
+    return `<div style="text-align:center; cursor:pointer; flex-shrink:0;" onclick="openChat(${i})">
+      <div style="width:72px; height:72px; border-radius:50%; background:${esc(cssUrl(m.photo))} center/cover; border:3px solid var(--accent);"></div>
+      <div style="font-size:12px; margin-top:6px; font-weight:600;">${esc(m.name)}</div>
+    </div>`;
+  }).join('') || '<p class="muted">No new matches yet. Keep swiping!</p>';
+  ml.innerHTML = idxs.slice().reverse().map(i => {
+    const m = state.matches[i];
+    const msgs = state.chats[m.name] || [];
+    const last = msgs.length ? msgs[msgs.length - 1] : null;
+    const preview = last ? (last.from === 'me' ? 'You: ' : '') + (last.img ? '📷 Photo' : last.text) : 'Say hi 👋';
+    return `<div class="card" style="display:flex; gap:12px; align-items:center; cursor:pointer;" onclick="openChat(${i})">
+      <div style="width:56px; height:56px; border-radius:50%; background:${esc(cssUrl(m.photo))} center/cover; flex-shrink:0;"></div>
+      <div style="min-width:0; flex:1;"><strong>${esc(m.name)}</strong><div class="muted" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(preview)}</div></div>
+      <button class="icon-btn more-btn" aria-label="More options for ${esc(m.name)}" onclick="event.stopPropagation(); openMatchMenu(${i})"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+    </div>`;
+  }).join('') || `<div class="empty"><div class="em">💬</div><h3>No conversations yet</h3><p>When you match with someone, your chat will show up here.</p><button class="btn" onclick="showScreen('discover')">Start Swiping</button></div>`;
+}
+let activeChat = -1;
+function openChat(i) {
+  const m = state.matches[i];
+  if (!m) return;
+  activeChat = i;
+  document.getElementById('chatName').textContent = m.name;
+  document.getElementById('chatSober').textContent = m.sober;
+  document.getElementById('chatAvatar').style.backgroundImage = cssUrl(m.photo);
+  renderChatStrip();
+  chatFor(m.name);
+  saveState();
+  toggleEmoji(false);
+  showScreen('chat');
+  renderChat();
+}
+function renderChat() {
+  const m = state.matches[activeChat];
+  if (!m) return;
+  const chat = document.getElementById('chatMessages');
+  chat.innerHTML = chatFor(m.name).map((x, i) => {
+    if (x.from === 'system') return `<div class="chat-sys">${esc(x.text)}</div>`;
+    const who = x.from === 'me' ? 'me' : 'them';
+    if (x.img) return `<div class="chat-bubble ${who} photo"><img src="${esc(x.img)}" alt="Photo" onclick="openViewer(this.src)"></div>`;
+    return `<div class="chat-bubble ${who}">${esc(x.text)}</div>`;
+  }).join('');
+  fitChatPadding();
+  chat.scrollTop = chat.scrollHeight;
+}
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  const m = state.matches[activeChat];
+  if (!text || !m) return;
+  const name = m.name;
+  chatFor(name).push({ from: 'me', text });
+  input.value = '';
+  toggleEmoji(false);
+  saveState();
+  renderChat();
+  setTimeout(() => {
+    chatFor(name).push({ from: 'them', text: REPLIES[Math.floor(Math.random() * REPLIES.length)] });
+    saveState();
+    if (document.getElementById('chat').classList.contains('active') && state.matches[activeChat] && state.matches[activeChat].name === name) renderChat();
+  }, 1200);
+}
+function sendIcebreaker(btn) {
+  document.getElementById('chatInput').value = btn.textContent;
+  sendMessage();
+}
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); sendMessage(); }
+});
+
+
+/* ---------- Chat: emoji picker ---------- */
+const EMOJIS = ['😊','😂','🤣','😍','🥰','😘','😎','🤩','🥳','😇','😅','🙈','😭','🤯','🤔','😴',
+  '❤️','💖','💕','💙','💚','💜','🧡','💛','👍','👏','🙌','🤝','💪','🙏','✌️','🤞',
+  '🔥','✨','⭐','🌟','💯','🎉','🎈','🏆','🌿','☕','🍵','🧋','🍕','🌮','🍣','🍰',
+  '🏃','🚴','🧘','🏋️','⚽','🏀','🎾','🧗','🥾','🎲','🎨','🎵','📖','🎬','🌅','🌲',
+  '🌸','🌻','🌈','☀️','🌙','🐶','🐱','🦊','🐼','🐰','💬','👀','👋','🫶','🤗','😌'];
+function buildEmojiPicker() {
+  const p = document.getElementById('emojiPicker');
+  if (p.childElementCount) return;
+  p.innerHTML = EMOJIS.map(e => `<button type="button" onmousedown="event.preventDefault()" onclick="insertEmoji('${e}')" aria-label="${e}">${e}</button>`).join('');
+}
+function toggleEmoji(force) {
+  const p = document.getElementById('emojiPicker');
+  buildEmojiPicker();
+  const show = typeof force === 'boolean' ? force : !p.classList.contains('show');
+  p.classList.toggle('show', show);
+  document.getElementById('emojiBtn').classList.toggle('on', show);
+  if (show) { const inp = document.getElementById('chatInput'); if (document.activeElement === inp) inp.blur(); }
+  fitChatPadding(true);
+}
+function insertEmoji(e) {
+  const input = document.getElementById('chatInput');
+  const len = input.value.length;
+  const start = input.selectionStart == null ? len : input.selectionStart;
+  const end = input.selectionEnd == null ? len : input.selectionEnd;
+  input.setRangeText(e, start, end, 'end');
+  // keep the caret right after the inserted emoji (works even while the input isn't focused)
+  const pos = start + e.length;
+  try { input.setSelectionRange(pos, pos); } catch (_) {}
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+// keep the chat list clear of the composer (which grows when the emoji picker opens)
+function fitChatPadding(scroll) {
+  const chat = document.getElementById('chatMessages');
+  const comp = document.querySelector('#chat .composer');
+  const nav = document.querySelector('#chat .nav');
+  if (!chat || !comp || !comp.offsetHeight) return;
+  chat.style.paddingBottom = (comp.offsetHeight + (nav ? nav.offsetHeight : 0) + 16) + 'px';
+  if (scroll !== false) chat.scrollTop = chat.scrollHeight;
+}
+window.addEventListener('resize', () => { if (document.getElementById('chat').classList.contains('active')) fitChatPadding(); });
+
+/* ---------- Chat: photos ---------- */
+async function sendChatPhoto(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  const m = state.matches[activeChat];
+  if (!file || !m) return;
+  if (!/^image\//.test(file.type)) { toast('Please choose an image'); return; }
+  let url;
+  try { url = await resizeImage(file, 600, 0.72); }
+  catch (e) { console.warn('Photo read failed', e); toast('Couldn’t open that photo'); return; }
+  const name = m.name;
+  const list = chatFor(name);
+  const msg = { from: 'me', img: url, t: Date.now() };
+  list.push(msg);
+  if (!saveState()) {
+    list.splice(list.indexOf(msg), 1);
+    saveState();
+    toast('Not enough space to save that photo');
+    renderChat();
+    return;
+  }
+  renderChat();
+  setTimeout(() => {
+    chatFor(name).push({ from: 'them', text: ['Great pic! 😍', 'Love that! 📸', 'Ha, that’s awesome 😄'][Math.floor(Math.random() * 3)] });
+    saveState();
+    if (document.getElementById('chat').classList.contains('active') && state.matches[activeChat] && state.matches[activeChat].name === name) renderChat();
+  }, 1400);
+}
+const viewer = { list: [], idx: 0 };
+function openViewer(src, list, idx) {
+  viewer.list = Array.isArray(list) && list.length ? list : [src];
+  viewer.idx = Array.isArray(list) ? Math.max(0, Math.min(idx || 0, list.length - 1)) : 0;
+  const v = document.getElementById('photoViewer');
+  v.classList.toggle('multi', viewer.list.length > 1);
+  showViewerImg();
+  v.classList.add('show');
+}
+function showViewerImg() {
+  document.getElementById('viewerImg').src = viewer.list[viewer.idx];
+  document.getElementById('viewerCount').textContent = (viewer.idx + 1) + ' / ' + viewer.list.length;
+}
+function viewerStep(d) {
+  if (viewer.list.length < 2) return;
+  viewer.idx = (viewer.idx + d + viewer.list.length) % viewer.list.length;
+  showViewerImg();
+}
+function closeViewer() { document.getElementById('photoViewer').classList.remove('show'); document.getElementById('viewerImg').removeAttribute('src'); }
+(() => {
+  const v = document.getElementById('photoViewer');
+  let sx = null, sy = 0;
+  v.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  v.addEventListener('touchend', e => {
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    sx = null;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) viewerStep(dx < 0 ? 1 : -1);
+  });
+  document.addEventListener('keydown', e => {
+    if (!v.classList.contains('show')) return;
+    if (e.key === 'ArrowRight') viewerStep(1);
+    if (e.key === 'ArrowLeft') viewerStep(-1);
+  });
+})();
+
+/* ---------- Voice / video calls (mock) ---------- */
+const call = { active: false, kind: null, id: 0, stream: null, timer: null, connectT: null, started: 0, mute: false, cam: true, spk: false, name: '' };
+function fmtDur(sec) { const m = Math.floor(sec / 60), s = sec % 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
+function stopCallStream() {
+  if (call.stream) { call.stream.getTracks().forEach(t => { try { t.stop(); } catch (_) {} }); call.stream = null; }
+  const v = document.getElementById('selfVideo');
+  if (v) { v.pause && v.pause(); v.srcObject = null; }
+  document.getElementById('selfView').classList.remove('live');
+}
+function renderCallToggles() {
+  const set = (id, on, label) => { const b = document.getElementById(id); b.classList.toggle('on', on); b.querySelector('.l').textContent = label; };
+  set('tgMute', call.mute, call.mute ? 'Unmute' : 'Mute');
+  set('tgSpk', call.spk, 'Speaker');
+  set('tgCam', call.kind === 'video' && !call.cam, call.cam ? 'Camera' : 'Camera off');
+  document.getElementById('tgCam').style.display = call.kind === 'video' ? '' : 'none';
+}
+function setSelfPlaceholder(text) {
+  document.getElementById('selfPhText').textContent = text;
+  const ph = document.getElementById('selfPh');
+  const up = state.user && (state.user.photos || [])[0];
+  ph.style.backgroundImage = up ? `linear-gradient(rgba(15,23,42,.55),rgba(15,23,42,.55)), ${cssUrl(up)}` : '';
+}
+async function startSelfCamera(id) {
+  setSelfPlaceholder('Starting camera…');
+  const md = navigator.mediaDevices;
+  if (!md || !md.getUserMedia || !window.isSecureContext) { setSelfPlaceholder('Camera unavailable'); return; }
+  try {
+    const stream = await md.getUserMedia({ video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 640 } }, audio: false });
+    if (!call.active || call.id !== id) { stream.getTracks().forEach(t => t.stop()); return; }
+    call.stream = stream;
+    stream.getVideoTracks().forEach(t => { t.enabled = call.cam; });
+    const v = document.getElementById('selfVideo');
+    v.srcObject = stream;
+    try { await v.play(); } catch (_) {}
+    document.getElementById('selfView').classList.toggle('live', call.cam);
+    if (!call.cam) setSelfPlaceholder('Camera off');
+  } catch (e) {
+    if (call.id !== id) return;
+    console.info('Camera not available:', e && e.name);
+    setSelfPlaceholder(e && e.name === 'NotAllowedError' ? 'Camera blocked' : 'Camera unavailable');
+  }
+}
+function startCall(kind) {
+  const m = state.matches[activeChat];
+  if (!m || call.active) return;
+  toggleEmoji(false);
+  Object.assign(call, { active: true, kind, id: call.id + 1, started: 0, mute: false, cam: true, spk: kind === 'video', name: m.name });
+  const scr = document.getElementById('callScreen');
+  scr.classList.toggle('video', kind === 'video');
+  scr.classList.remove('connected');
+  document.getElementById('callAvatar').style.backgroundImage = cssUrl(m.photo);
+  document.getElementById('callRemote').style.backgroundImage = cssUrl(m.photo);
+  document.getElementById('callName').textContent = m.name;
+  document.getElementById('callStatus').textContent = 'Calling…';
+  document.getElementById('callKind').textContent = kind === 'video' ? 'Clean Date video call' : 'Clean Date voice call';
+  renderCallToggles();
+  scr.classList.add('show');
+  const id = call.id;
+  if (kind === 'video') startSelfCamera(id);
+  call.connectT = setTimeout(() => {
+    if (!call.active || call.id !== id) return;
+    call.started = Date.now();
+    scr.classList.add('connected');
+    const tick = () => { document.getElementById('callStatus').textContent = fmtDur(Math.floor((Date.now() - call.started) / 1000)); };
+    tick();
+    call.timer = setInterval(tick, 1000);
+  }, 2500);
+}
+function callToggle(which) {
+  if (!call.active) return;
+  if (which === 'mute') call.mute = !call.mute;
+  if (which === 'spk') call.spk = !call.spk;
+  if (which === 'cam') {
+    call.cam = !call.cam;
+    if (call.stream) {
+      call.stream.getVideoTracks().forEach(t => { t.enabled = call.cam; });
+      document.getElementById('selfView').classList.toggle('live', call.cam);
+    }
+    if (!call.cam) setSelfPlaceholder('Camera off');
+    else if (!call.stream) startSelfCamera(call.id);
+  }
+  renderCallToggles();
+}
+function endCall() {
+  if (!call.active) return;
+  const secs = call.started ? Math.max(1, Math.floor((Date.now() - call.started) / 1000)) : 0;
+  clearTimeout(call.connectT); clearInterval(call.timer);
+  call.timer = call.connectT = null;
+  stopCallStream();
+  call.active = false;
+  call.id++;
+  const scr = document.getElementById('callScreen');
+  scr.classList.remove('show', 'connected', 'video');
+  const label = (call.kind === 'video' ? '📹 Video call' : '📞 Voice call') + (secs ? ' · ' + fmtDur(secs) : ' · cancelled');
+  if (call.name) { chatFor(call.name).push({ from: 'system', text: label, t: Date.now() }); saveState(); }
+  if (document.getElementById('chat').classList.contains('active')) renderChat();
+  toast(secs ? 'Call ended' : 'Call cancelled');
+}
+window.addEventListener('pagehide', stopCallStream);
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (call.active) endCall();
+  else if (document.getElementById('photoViewer').classList.contains('show')) closeViewer();
+  else toggleEmoji(false);
+});
+
+
+/* ---------- Action sheet, unmatch / report ---------- */
+function openActionSheet(html) {
+  document.getElementById('actionSheetBody').innerHTML = html;
+  document.getElementById('actionSheet').classList.add('show');
+}
+function closeActionSheet() { document.getElementById('actionSheet').classList.remove('show'); }
+let menuMatch = null;
+function openMatchMenu(i) {
+  const m = state.matches[i];
+  if (!m) return;
+  menuMatch = m.name;
+  openActionSheet(`<div class="grab"></div><h3>${esc(m.name)}</h3><p class="sub">${esc(m.sober || '')}</p>
+    <button class="btn secondary" id="menuUnmatch" onclick="confirmUnmatch()">Unmatch</button>
+    <button class="btn ghost-danger" id="menuReport" onclick="openReport()">Report ${esc(m.name)}</button>
+    <button class="btn secondary" onclick="closeActionSheet()">Cancel</button>`);
+}
+function confirmUnmatch() {
+  const n = esc(menuMatch);
+  openActionSheet(`<div class="grab"></div><h3>Unmatch ${n}?</h3><p class="sub">You won’t see each other again and your chat will be deleted.</p>
+    <button class="btn danger" id="confirmUnmatchBtn" onclick="doUnmatch(false)">Unmatch</button>
+    <button class="btn secondary" onclick="closeActionSheet()">Cancel</button>`);
+}
+const REPORT_REASONS = ['Fake profile or scam', 'Inappropriate messages or photos', 'Harassment or threats', 'Pressuring me to drink or use', 'Seems underage', 'Something else'];
+function openReport() {
+  openActionSheet(`<div class="grab"></div><h3>Report ${esc(menuMatch)}</h3><p class="sub">Your report is private. ${esc(menuMatch)} won’t know it was you.</p>
+    <div class="reasons">${REPORT_REASONS.map((r, i) => `<label class="reason"><input type="radio" name="reportReason" value="${esc(r)}" ${i === 0 ? '' : ''} onchange="document.getElementById('reportSubmit').disabled=false"> ${esc(r)}</label>`).join('')}</div>
+    <button class="btn danger" id="reportSubmit" disabled onclick="confirmReport()">Continue</button>
+    <button class="btn secondary" onclick="closeActionSheet()">Cancel</button>`);
+}
+let reportReason = '';
+function confirmReport() {
+  const r = document.querySelector('input[name=reportReason]:checked');
+  if (!r) return toast('Pick a reason');
+  reportReason = r.value;
+  openActionSheet(`<div class="grab"></div><h3>Report and unmatch?</h3><p class="sub">Reason: ${esc(reportReason)}.<br>We’ll review ${esc(menuMatch)}’s profile and you’ll be unmatched.</p>
+    <button class="btn danger" id="confirmReportBtn" onclick="doUnmatch(true)">Report &amp; unmatch</button>
+    <button class="btn secondary" onclick="openReport()">Back</button>`);
+}
+function doUnmatch(reported) {
+  const name = menuMatch;
+  closeActionSheet();
+  const idx = state.matches.findIndex(m => m.name === name);
+  if (idx === -1) return;
+  const wasOpen = document.getElementById('chat').classList.contains('active') && state.matches[activeChat] && state.matches[activeChat].name === name;
+  state.matches.splice(idx, 1);
+  delete state.chats[name];
+  if (!state.removed.includes(name)) state.removed.push(name);
+  if (reported) { state.reports = state.reports || []; state.reports.push({ name, reason: reportReason, at: Date.now() }); }
+  if (activeChat === idx) activeChat = -1; else if (activeChat > idx) activeChat--;
+  saveState();
+  if (wasOpen) showScreen('matches'); else if (document.getElementById('matches').classList.contains('active')) renderMatches();
+  else if (document.getElementById('chat').classList.contains('active')) renderChatStrip();
+  toast(reported ? `Thanks. ${name} was reported and unmatched` : `Unmatched with ${name}`);
+}
+
+/* ---------- Chat: match strip ---------- */
+function renderChatStrip() {
+  const strip = document.getElementById('chatStrip');
+  const chatEl = document.getElementById('chat');
+  const show = state.matches.length > 1;
+  chatEl.classList.toggle('has-strip', show);
+  if (!show) { strip.innerHTML = ''; return; }
+  strip.innerHTML = state.matches.map((m, i) => ({ m, i })).reverse().map(({ m, i }) =>
+    `<button class="strip-item ${i === activeChat ? 'on' : ''}" onclick="${i === activeChat ? '' : `openChat(${i})`}" aria-label="Chat with ${esc(m.name)}">
+      <div class="av" style="background-image:${esc(cssUrl(m.photo))}"></div><div class="nm">${esc(m.name)}</div></button>`).join('');
+  const on = strip.querySelector('.on');
+  if (on) strip.scrollLeft = Math.max(0, on.offsetLeft - 16);
+}
+
+/* ---------- Events: who's going ---------- */
+function showEventAttendees(i) {
+  const e = state.events[i];
+  if (!e) return;
+  document.getElementById('attendeesTitle').textContent = e.title;
+  const others = Math.max(0, e.interested - (e.going ? 1 : 0));
+  // deterministic sample of people per event
+  const seed = String(e.id || e.title).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const pool = profiles.filter(p => !(state.removed || []).includes(p.name));
+  const shown = [];
+  for (let k = 0; k < Math.min(others, pool.length); k++) shown.push(pool[(seed + k * 5) % pool.length]);
+  const uniq = [...new Set(shown)];
+  const extra = others - uniq.length;
+  const u = state.user;
+  const me = e.going ? `<div class="card person"><div class="av" style="${u && u.photos && u.photos[0] ? 'background-image:' + esc(cssUrl(u.photos[0])) : 'background:var(--accent)'}">${u && u.photos && u.photos[0] ? '' : esc(((u && u.name) || 'Y')[0].toUpperCase())}</div>
+      <div><strong>${esc((u && u.name) || 'You')}</strong><span class="you-tag">YOU</span><div class="muted">${esc((u && u.sober) || 'Going')}</div></div></div>` : '';
+  const list = uniq.map(p => `<div class="card person"><div class="av" style="background-image:${esc(cssUrl(p.photos[0]))}"></div>
+      <div style="min-width:0;"><strong>${esc(p.name)}, ${p.age}</strong><div class="muted">${esc(p.sober)} · ${esc(p.location)}</div></div></div>`).join('');
+  const body = (me || list) ? me + list + (extra > 0 ? `<p class="muted" style="text-align:center; margin-top:4px;">+ ${extra} more interested</p>` : '')
+    : `<div class="empty"><div class="em">👥</div><h3>No one yet</h3><p>Be the first to say you’re interested.</p></div>`;
+  document.getElementById('attendeesList').innerHTML = `<p class="muted" style="margin-bottom:12px;">${e.interested} ${e.interested === 1 ? 'person' : 'people'} interested · ${esc(e.date)} · ${esc(e.location)}</p>` + body +
+    `<button class="btn ${e.going ? 'going' : ''}" id="attendRsvp" onclick="rsvp(${i}); showEventAttendees(${i});">${e.going ? '✓ You’re going' : 'I’m interested'}</button>`;
+  showScreen('eventAttendees');
+}
+
+/* ---------- Events ---------- */
+function renderEvents() {
+  const list = document.getElementById('eventsList');
+  list.innerHTML = state.events.map((e, i) => `
+    <div class="event-card">
+      <div class="event-banner" style="background:${esc(e.gradient)};">
+        <span class="event-emoji">${esc(e.emoji)}</span>
+        <div class="event-date">${esc(e.date)}</div>
+      </div>
+      <div class="event-body">
+        <h3>${esc(e.title)}</h3>
+        <p class="muted">${esc(e.desc)}</p>
+        <div class="event-meta">
+          <span>📍 ${esc(e.location)}</span>
+          <button class="who" onclick="showEventAttendees(${i})">👥 ${e.interested} interested · See who's going ›</button>
+        </div>
+        <button class="btn ${e.going ? 'going' : 'secondary'}" style="margin-top:12px;" onclick="rsvp(${i})">${e.going ? '✓ You’re going' : 'I’m interested'}</button>
+      </div>
+    </div>
+  `).join('') || `<div class="empty"><div class="em">📅</div><h3>No events yet</h3><p>Be the first to host an alcohol-free meetup.</p></div>`;
+}
+function rsvp(i) {
+  const e = state.events[i];
+  if (!e) return;
+  e.going = !e.going;
+  e.interested = Math.max(0, e.interested + (e.going ? 1 : -1));
+  saveState();
+  renderEvents();
+  toast(e.going ? 'You’re going! 🎉' : 'RSVP removed');
+}
+function addEvent() {
+  const title = val('eventTitle');
+  if (!title) return toast('Give your event a title');
+  state.events.unshift({
+    id: 'e' + Date.now(),
+    title,
+    date: val('eventDate') || 'TBD',
+    location: val('eventLocation') || 'Location TBD',
+    desc: val('eventDesc') || 'No description',
+    emoji: '🌿',
+    gradient: 'linear-gradient(135deg,#0d9488,#14b8a6)',
+    interested: 1,
+    going: true
+  });
+  saveState();
+  ['eventTitle', 'eventDate', 'eventLocation', 'eventDesc'].forEach(id => { document.getElementById(id).value = ''; });
+  toast('Event posted');
+  showScreen('events');
+}
+
+/* ---------- Filters / auth ---------- */
+function updateDistance() {
+  const r = document.getElementById('filterDistance');
+  const v = parseInt(r.value, 10);
+  const label = v + (v === 1 ? ' mile' : ' miles');
+  document.getElementById('distLabel').textContent = label;
+  const b = document.getElementById('distBubble');
+  b.textContent = v + ' mi';
+  const pct = (v - r.min) / (r.max - r.min);
+  b.style.left = `calc(${pct * 100}% + ${(0.5 - pct) * 16}px)`;
+}
+function openFilters() {
+  const f = state.filters;
+  document.getElementById('filterDistance').value = f.distance;
+  updateDistance();
+  document.getElementById('filterAgeMin').value = f.ageMin;
+  document.getElementById('filterAgeMax').value = f.ageMax;
+  document.getElementById('filterGender').value = f.gender;
+  document.getElementById('filterProgram').value = f.program;
+  document.getElementById('filterKids').value = f.kids || '';
+  document.getElementById('filterSmoker').value = f.smoker || '';
+  showScreen('filters');
+}
+function applyFilters() {
+  let min = parseInt(val('filterAgeMin'), 10) || 18, max = parseInt(val('filterAgeMax'), 10) || 99;
+  if (min > max) [min, max] = [max, min];
+  state.filters = { distance: parseInt(val('filterDistance'), 10) || 25, ageMin: Math.max(18, min), ageMax: max, gender: val('filterGender'), program: val('filterProgram'), kids: val('filterKids'), smoker: val('filterSmoker') };
+  state.current = 0;
+  saveState();
+  const n = filteredProfiles().length;
+  toast(n ? `${n} ${n === 1 ? 'person' : 'people'} match your filters` : 'No one matches those filters');
+  showScreen('discover');
+}
+function resetFilters() {
+  state.filters = { ...DEFAULT_FILTERS };
+  state.current = 0;
+  saveState();
+  toast('Filters reset');
+  showScreen('discover');
+}
+/* ---------- Beta: real accounts (Firebase Auth) ---------- */
+const AUTH_ERRORS = {
+  'auth/invalid-email': 'That email address doesn’t look right.',
+  'auth/missing-email': 'Please enter your email.',
+  'auth/missing-password': 'Please enter your password.',
+  'auth/user-not-found': 'No account with that email. Tap “Create an account”.',
+  'auth/wrong-password': 'Wrong email or password. Try again or reset your password.',
+  'auth/invalid-credential': 'Wrong email or password. Try again or reset your password.',
+  'auth/invalid-login-credentials': 'Wrong email or password. Try again or reset your password.',
+  'auth/email-already-in-use': 'An account with this email already exists. Try logging in instead.',
+  'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
+  'auth/too-many-requests': 'Too many tries. Please wait a few minutes and try again.',
+  'auth/network-request-failed': 'Network problem. Check your connection and try again.',
+  'auth/popup-closed-by-user': 'Google sign-in was closed before finishing.',
+  'auth/cancelled-popup-request': 'Google sign-in was cancelled.',
+  'auth/account-exists-with-different-credential': 'This email already uses a different sign-in method. Try email and password.',
+  'auth/unauthorized-domain': 'This website isn’t authorized for sign-in yet.',
+  'auth/operation-not-allowed': 'That sign-in method isn’t turned on yet.',
+  'auth/user-disabled': 'This account has been disabled.',
+  'permission-denied': 'The cloud refused the save (permissions). Please try again later.',
+  'unavailable': 'Can’t reach the cloud right now. Check your connection.'
+};
+function friendlyError(e) {
+  const code = (e && e.code) || '';
+  return AUTH_ERRORS[code] || AUTH_ERRORS[code.replace(/^firestore\//, '')] || (e && e.message ? e.message.replace(/^Firebase:\s*/, '') : 'Something went wrong. Please try again.');
+}
+function setAuthError(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg || ''; }
+function clearAuthErrors() { setAuthError('loginError', ''); setAuthError('signupError', ''); }
+function setBusy(btnId, busy, label) {
+  const b = document.getElementById(btnId);
+  if (!b) return;
+  if (busy) { b.dataset.label = b.textContent; b.textContent = 'Please wait…'; b.disabled = true; }
+  else { b.textContent = label || b.dataset.label || b.textContent; b.disabled = false; }
+}
+function cdReady(errId) {
+  if (window.CD) return true;
+  setAuthError(errId, window.__cdLoadError ? 'Couldn’t load sign-in. Check your connection and reload.' : 'Still loading… try again in a second.');
+  return false;
+}
+async function doLogin() {
+  clearAuthErrors();
+  if (!cdReady('loginError')) return;
+  const email = val('loginEmail'), pw = document.getElementById('loginPassword').value;
+  if (!email || !pw) return setAuthError('loginError', 'Enter your email and password.');
+  setBusy('loginBtn', true);
+  try { await window.CD.login(email, pw); }
+  catch (e) { setAuthError('loginError', friendlyError(e)); }
+  finally { setBusy('loginBtn', false); }
+}
+async function createAccount() {
+  clearAuthErrors();
+  if (!cdReady('signupError')) return;
+  const email = val('signupEmail'), pw = document.getElementById('signupPassword').value;
+  if (!email || !pw) return setAuthError('signupError', 'Enter an email and a password.');
+  if (pw.length < 6) return setAuthError('signupError', 'Password needs at least 6 characters.');
+  setBusy('signupBtn', true);
+  try { await window.CD.signup(email, pw); }
+  catch (e) { setAuthError('signupError', friendlyError(e)); }
+  finally { setBusy('signupBtn', false); }
+}
+async function googleSignIn(errId) {
+  clearAuthErrors();
+  if (!cdReady(errId)) return;
+  try { await window.CD.google(); }
+  catch (e) { setAuthError(errId, friendlyError(e)); }
+}
+async function forgotPassword() {
+  clearAuthErrors();
+  if (!cdReady('loginError')) return;
+  const email = val('loginEmail');
+  if (!email) return setAuthError('loginError', 'Type your email above, then tap “Forgot password?” again.');
+  try { await window.CD.resetPassword(email); toast('Password reset email sent (check spam too)'); }
+  catch (e) { setAuthError('loginError', friendlyError(e)); }
+}
+async function logout() {
+  if (!confirm('Log out?')) return;
+  try { if (window.CD) await window.CD.logout(); } catch (e) { console.warn(e); }
+  // onAuthStateChanged handles clearing the cached profile and showing onboarding
+  if (!window.CD) { state.loggedIn = false; state.user = null; saveState(); showScreen('onboarding'); }
+}
+function resetDemo() {
+  if (!confirm('Clear the local cache on this device? Your cloud profile is kept.')) return;
+  store.removeItem(STORAGE_KEY);
+  location.reload();
+}
+function cloudRow(k, v) { return `<tr><td>${esc(k)}</td><td>${esc(v == null || v === '' ? '—' : v)}</td></tr>`; }
+async function refreshCloudPanel() {
+  const acct = document.getElementById('cloudAccount'), box = document.getElementById('cloudData');
+  if (!window.CD || !window.CD.currentUser()) { acct.textContent = 'Not signed in'; box.textContent = 'Sign in to see your saved profile.'; return; }
+  const u = window.CD.currentUser();
+  acct.textContent = 'Signed in as ' + (u.email || u.uid) + ' · uid ' + u.uid;
+  box.textContent = 'Reading from Firestore…';
+  try {
+    const d = await window.CD.readProfile(u.uid);
+    if (!d) { box.textContent = 'No cloud profile yet (users/' + u.uid + ' does not exist). Finish sign-up to create it.'; return; }
+    const ts = t => t && t.toDate ? t.toDate().toLocaleString() : (t || '');
+    const photoKb = (d.photos || []).map(p => Math.round(String(p).length / 1024) + ' KB').join(', ');
+    box.innerHTML = '<table class="cloud-table">' +
+      cloudRow('Name', d.name) + cloudRow('Age', d.age) + cloudRow('Gender', d.gender) + cloudRow('Location', d.location) +
+      cloudRow('Work', d.job) + cloudRow('Height', d.height) + cloudRow('Kids', d.kids) + cloudRow('Smoking', d.smoker) +
+      cloudRow('stillUse (text)', d.stillUse) + cloudRow('stillUseList', (d.stillUseList || []).join(' | ')) +
+      cloudRow('Sober', d.sober) + cloudRow('Program', d.program) + cloudRow('Looking for', (d.looking || []).join(', ')) +
+      cloudRow('Bio', d.bio) + cloudRow('Photos', (d.photos || []).length + (photoKb ? ' (' + photoKb + ')' : '')) +
+      cloudRow('createdAt', ts(d.createdAt)) + cloudRow('updatedAt', ts(d.updatedAt)) +
+      '</table>';
+  } catch (e) { console.error(e); box.textContent = 'Could not read from cloud: ' + friendlyError(e); }
+}
+
+function createFloatingPhotos() {
+  const container = document.getElementById('floatingPhotos');
+  if (!container) return;
+  // A tidy 3-column photo mosaic built from the sample profiles' main photos.
+  const seen = new Set();
+  const urls = [0, 1, 2].flatMap(i => profiles.map(p => p.photos && p.photos[i]))
+    .filter(u => u && !seen.has(u) && seen.add(u))
+    .map(u => u.replace('w=800&h=1000', 'w=300&h=400'));
+  container.innerHTML = '';
+  for (let c = 0; c < 3; c++) {
+    const col = document.createElement('div');
+    col.className = 'col';
+    for (let r = 0; r < 3; r++) {
+      const url = urls[(c + r * 3) % urls.length];
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.style.backgroundImage = `url("${url}")`;
+      col.appendChild(tile);
+    }
+    container.appendChild(col);
+  }
+}
+
+// Init
+renderNavs();
+loadState();
+createFloatingPhotos();
+renderPhotoGrid('signup');
+updateProfileUI();
+// Beta: Firebase decides which screen to show (see the module script below).
+if (state.user && state.loggedIn) document.getElementById('authLoading').classList.add('show');
+setTimeout(() => document.getElementById('authLoading').classList.remove('show'), 8000);
+const _origShowScreen = showScreen;
+showScreen = function (id) { _origShowScreen(id); if (id === 'settings') refreshCloudPanel(); };
+</script>
+<script type="module">
+// ---------- Clean Date beta: Firebase (Auth + Firestore) ----------
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
+  GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail,
+  sendEmailVerification, browserLocalPersistence, setPersistence } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCBCWeIuQGdHjDiOo6j-2dMKQyoWE7_-Kw",
+  authDomain: "clean-date-ee0d0.firebaseapp.com",
+  projectId: "clean-date-ee0d0",
+  storageBucket: "clean-date-ee0d0.firebasestorage.app",
+  messagingSenderId: "442116034974",
+  appId: "1:442116034974:web:d1b0726945c6c24f3b068f"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+const PROFILE_FIELDS = ['name','age','gender','location','job','height','kids','smoker','stillUse','sober','program','bio','looking'];
+const MAX_DOC_BYTES = 900 * 1024; // stay well under Firestore's 1 MiB doc limit
+
+// Shrink a data URL photo (beta keeps photos inside the Firestore doc).
+function shrinkDataUrl(url, max, quality) {
+  return new Promise(resolve => {
+    if (!url || !String(url).startsWith('data:image')) return resolve(url);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      const out = c.toDataURL('image/jpeg', quality);
+      resolve(out.length < url.length ? out : url);
+    };
+    img.onerror = () => resolve(url);
+    img.src = url;
+  });
+}
+async function cloudPhotos(photos) {
+  let list = (photos || []).slice(0, 6);
+  for (const [max, q] of [[600, 0.72], [480, 0.6], [360, 0.5]]) {
+    list = await Promise.all(list.map(p => shrinkDataUrl(p, max, q)));
+    if (list.reduce((n, p) => n + String(p).length, 0) <= MAX_DOC_BYTES - 20000) return list;
+  }
+  while (list.length && list.reduce((n, p) => n + String(p).length, 0) > MAX_DOC_BYTES - 20000) list.pop();
+  return list;
+}
+
+let profileExists = false;
+async function saveProfile(user, isNew) {
+  const u = auth.currentUser;
+  if (!u) throw Object.assign(new Error('Please log in again.'), { code: 'auth/no-user' });
+  const data = {};
+  PROFILE_FIELDS.forEach(k => { if (user[k] !== undefined) data[k] = user[k]; });
+  data.age = parseInt(data.age, 10) || null;
+  data.looking = Array.isArray(data.looking) ? data.looking : [];
+  data.stillUse = data.stillUse || '';
+  data.stillUseList = data.stillUse ? data.stillUse.split(', ').filter(Boolean) : [];
+  data.photos = await cloudPhotos(user.photos);
+  data.photoCount = data.photos.length;
+  data.visible = true;
+  data.updatedAt = serverTimestamp();
+  if (!profileExists || isNew) {
+    const snap = await getDoc(doc(db, 'users', u.uid)).catch(() => null);
+    if (!snap || !snap.exists() || !snap.data().createdAt) data.createdAt = serverTimestamp();
+  }
+  await setDoc(doc(db, 'users', u.uid), data, { merge: true });
+  profileExists = true;
+  if (data.photos.length < (user.photos || []).length) toast('Some photos were too big for the beta and were skipped');
+  return data;
+}
+async function readProfile(uid) {
+  const snap = await getDoc(doc(db, 'users', uid));
+  return snap.exists() ? snap.data() : null;
+}
+function toLocalUser(d) {
+  const u = {};
+  PROFILE_FIELDS.forEach(k => { u[k] = d[k] !== undefined ? d[k] : ''; });
+  if (!u.stillUse && Array.isArray(d.stillUseList)) u.stillUse = d.stillUseList.join(', ');
+  u.looking = Array.isArray(d.looking) ? d.looking : [];
+  u.photos = Array.isArray(d.photos) ? d.photos : [];
+  return u;
+}
+async function loadCloudMembers(myUid) {
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), limit(50)));
+    const list = [];
+    snap.forEach(ds => {
+      if (ds.id === myUid) return;
+      const d = ds.data();
+      if (!d || !d.name || d.visible === false || d.status === 'suspended') return;
+      const p = toLocalUser(d);
+      p.age = parseInt(p.age, 10) || 18;
+      p.sober = p.sober || 'Sober curious';
+      p.tags = ['Real member'].concat(Array.isArray(d.tags) ? d.tags : []);
+      p.uid = ds.id;
+      list.push(p);
+    });
+    cloudProfiles = list;
+    if (document.getElementById('discover').classList.contains('active')) loadProfile();
+  } catch (e) { console.warn('Could not load real members (sample profiles still shown):', e); }
+}
+
+function isMobile() { return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
+async function google() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    const fallback = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported'];
+    if (fallback.includes(e.code) || (isMobile() && e.code === 'auth/internal-error')) {
+      await signInWithRedirect(auth, provider);
+      return;
+    }
+    throw e;
+  }
+}
+async function signup(email, pw) {
+  const cred = await createUserWithEmailAndPassword(auth, email, pw);
+  sendEmailVerification(cred.user).catch(() => {});
+  return cred;
+}
+
+window.CD = {
+  currentUser: () => auth.currentUser,
+  login: (email, pw) => signInWithEmailAndPassword(auth, email, pw),
+  signup, google,
+  logout: () => signOut(auth),
+  resetPassword: email => sendPasswordResetEmail(auth, email),
+  saveProfile, readProfile
+};
+
+getRedirectResult(auth).catch(e => { setAuthError('loginError', friendlyError(e)); setAuthError('signupError', friendlyError(e)); });
+
+onAuthStateChanged(auth, async user => {
+  const loading = document.getElementById('authLoading');
+  if (!user) {
+    profileExists = false;
+    cloudProfiles = [];
+    if (state.user || state.loggedIn) { state.user = null; state.loggedIn = false; saveState(); updateProfileUI(); }
+    loading.classList.remove('show');
+    const cur = document.querySelector('.screen.active');
+    if (!cur || !['onboarding', 'login', 'account'].includes(cur.id)) showScreen('onboarding');
+    return;
+  }
+  loading.classList.add('show');
+  try {
+    const d = await readProfile(user.uid);
+    if (d && d.name) {
+      profileExists = true;
+      state.user = toLocalUser(d);
+      state.loggedIn = true;
+      saveState();
+      updateProfileUI();
+      clearAuthErrors();
+      toast('Welcome back, ' + state.user.name + '!');
+      showScreen('discover');
+    } else {
+      profileExists = !!d;
+      state.user = null; state.loggedIn = false; saveState(); updateProfileUI();
+      const cur = document.querySelector('.screen.active');
+      if (!cur || cur.id !== 'signup') beginProfileSteps({ name: (user.displayName || '').split(' ')[0] });
+      toast('Account ready — now build your profile');
+    }
+    loadCloudMembers(user.uid);
+  } catch (e) {
+    console.error(e);
+    toast('Signed in, but couldn’t load your cloud profile: ' + friendlyError(e));
+    if (state.user) showScreen('discover'); else beginProfileSteps({ name: (user.displayName || '').split(' ')[0] });
+  } finally {
+    loading.classList.remove('show');
+  }
+});
+</script>
+<script>
+// If the Firebase SDK failed to load (offline / blocked), say so instead of failing silently.
+setTimeout(() => { if (!window.CD) { window.__cdLoadError = true; console.warn('Firebase SDK not loaded'); } }, 10000);
+</script>
+</body>
+</html>
