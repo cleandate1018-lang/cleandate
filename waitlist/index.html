@@ -168,7 +168,7 @@ footer a { font-weight:700; }
 </footer>
 <script>
 (function () {
-  var ENDPOINT = 'https://formsubmit.co/ajax/cleandate1018@gmail.com';
+  var ENDPOINT = 'https://api.web3forms.com/submit';
   var SHARE_URL = 'https://cleandate1018-lang.github.io/cleandate/waitlist/';
   var form = document.getElementById('waitlistForm');
   var $ = function (id) { return document.getElementById(id); };
@@ -198,10 +198,10 @@ footer a { font-weight:700; }
       state: $('wlState').value,
       sober: $('wlSober').value || '(not given)',
       looking: looking.join(', ') || '(not given)',
-      _subject: 'New Clean Date waitlist signup',
-      _template: 'table',
-      _captcha: 'false',
-      _honey: ''
+      access_key: '378885d0-7dde-499f-a8ed-10bb06b5800b',
+      subject: 'New Clean Date waitlist signup',
+      from_name: 'Clean Date Waitlist',
+      botcheck: ''
     };
     var btn = $('wlSubmit');
     btn.disabled = true; btn.textContent = 'Joining…';
