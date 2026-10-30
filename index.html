@@ -266,6 +266,10 @@ header .btn { flex-shrink: 0; }
 .gallery img { width:72px; height:72px; object-fit:cover; border-radius:12px; cursor:pointer; border:2px solid transparent; flex-shrink:0; }
 .gallery img.sel { border-color: var(--accent); }
 .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px; margin-top:14px; }
+.prem-row { display:flex; gap:12px; align-items:flex-start; padding:8px 0; }
+.prem-row + .prem-row { border-top:1px solid #eef2f6; }
+.prem-row span { font-size:22px; line-height:1.2; width:28px; text-align:center; }
+.prem-row p { margin:2px 0 0; font-size:13px; }
 .dist-wrap { position:relative; padding-top:34px; margin:6px 0 18px; }
 .dist-bubble { position:absolute; top:0; transform:translateX(-50%); background:var(--accent); color:#fff; font-size:13px; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap; pointer-events:none; }
 .dist-bubble::after { content:''; position:absolute; left:var(--tip,50%); bottom:-4px; transform:translateX(-50%); border:4px solid transparent; border-bottom:0; border-top-color:var(--accent); }
@@ -631,6 +635,12 @@ header .btn { flex-shrink: 0; }
         <p id="userBio" style="margin-bottom:4px;"></p>
         <div class="detail-grid" id="userDetails" style="margin-top:8px;"></div>
       </div>
+      <div class="card premium-teaser" onclick="openPremium()" style="cursor:pointer; background:linear-gradient(135deg,var(--accent),var(--accent-dark)); color:#fff; border:none;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div><h3 style="color:#fff; margin:0 0 4px;">✨ Clean Date Premium</h3><p style="margin:0; font-size:14px; opacity:.9;">Coming soon. Tap to see what's included.</p></div>
+          <div style="font-size:22px;">›</div>
+        </div>
+      </div>
       <button class="btn secondary" onclick="openEditProfile()">Edit Profile</button>
       <button class="btn secondary" onclick="showScreen('settings')">Settings</button>
       <button class="btn danger" onclick="logout()">Log Out</button>
@@ -737,6 +747,35 @@ header .btn { flex-shrink: 0; }
       <button class="btn" id="loginBtn" onclick="doLogin()">Log In</button>
       <button class="link-btn" onclick="forgotPassword()">Forgot password?</button>
       <p class="muted" style="margin-top:10px; font-size:14px;">New here? <button class="link-btn" onclick="startSignup()">Create an account</button></p>
+    </div>
+  </div>
+
+  <!-- Premium (coming soon) -->
+  <div id="premium" class="screen">
+    <header><button class="icon-btn" onclick="showScreen('profile')">←</button><div class="logo">Premium</div><div style="width:38px;"></div></header>
+    <div class="content">
+      <div class="card" style="text-align:center; background:linear-gradient(135deg,var(--accent),var(--accent-dark)); color:#fff; border:none;">
+        <div style="font-size:34px;">✨</div>
+        <h3 style="color:#fff; margin:6px 0 4px;">Clean Date Premium</h3>
+        <p style="margin:0; opacity:.9;">Coming soon. Clean Date stays free to join, and Premium adds extras.</p>
+      </div>
+      <div class="card">
+        <div class="prem-row"><span>❤️</span><div><b>See who liked you</b><p class="muted">Skip the guessing and match faster.</p></div></div>
+        <div class="prem-row"><span>♾️</span><div><b>Unlimited likes</b><p class="muted">No daily limit on swiping right.</p></div></div>
+        <div class="prem-row"><span>🎯</span><div><b>Advanced filters</b><p class="muted">Filter by sobriety time, program, and more.</p></div></div>
+        <div class="prem-row"><span>🚀</span><div><b>Monthly profile boost</b><p class="muted">Get shown to more people nearby for 30 minutes.</p></div></div>
+        <div class="prem-row"><span>↩️</span><div><b>Undo a swipe</b><p class="muted">Bring back someone you passed by accident.</p></div></div>
+        <div class="prem-row"><span>✅</span><div><b>Read receipts</b><p class="muted">Know when your message was seen.</p></div></div>
+      </div>
+      <div id="premiumForm">
+        <p class="muted" style="margin:4px 0 6px;">Want to know when it launches?</p>
+        <input class="input" id="premiumEmail" type="email" placeholder="Your email" autocomplete="email">
+        <button class="btn" id="premiumBtn" onclick="joinPremiumList()">Notify me when it launches</button>
+      </div>
+      <div id="premiumThanks" class="card" style="display:none; text-align:center;">
+        <h3>You're on the list 🎉</h3>
+        <p class="muted">We'll email you as soon as Premium is ready.</p>
+      </div>
     </div>
   </div>
 
@@ -949,6 +988,30 @@ function saveState() {
   }
 }
 
+function openPremium() {
+  const done = localStorageSafeGet('cleandate_premium_list');
+  document.getElementById('premiumForm').style.display = done ? 'none' : '';
+  document.getElementById('premiumThanks').style.display = done ? '' : 'none';
+  const em = document.getElementById('premiumEmail');
+  if (!em.value) { try { const cu = window.CD && window.CD.currentUser && window.CD.currentUser(); if (cu && cu.email) em.value = cu.email; } catch (e) {} }
+  showScreen('premium');
+}
+function localStorageSafeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function joinPremiumList() {
+  const em = document.getElementById('premiumEmail');
+  const email = em.value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { toast('Please enter a valid email'); em.focus(); return; }
+  const btn = document.getElementById('premiumBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const u = state.user || {};
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ access_key: '378885d0-7dde-499f-a8ed-10bb06b5800b', subject: 'New Clean Date Premium interest', from_name: 'Clean Date Premium', email: email, name: u.name || '(not given)', location: u.location || '(not given)', botcheck: '' })
+  }).then(r => r.json().catch(() => ({})).then(j => { if (!r.ok || j.success === false) throw new Error(j.message || r.status); }))
+    .then(() => { try { localStorage.setItem('cleandate_premium_list', '1'); } catch (e) {} document.getElementById('premiumForm').style.display = 'none'; document.getElementById('premiumThanks').style.display = ''; })
+    .catch(() => toast('Something went wrong. Please try again.'))
+    .then(() => { btn.disabled = false; btn.textContent = 'Notify me when it launches'; });
+}
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById(id);
