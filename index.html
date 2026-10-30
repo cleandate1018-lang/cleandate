@@ -1798,7 +1798,7 @@ function doUnmatch(reported) {
 function renderChatStrip() {
   const strip = document.getElementById('chatStrip');
   const chatEl = document.getElementById('chat');
-  const show = state.matches.length > 1;
+  const show = false; // only show the person you're chatting with
   chatEl.classList.toggle('has-strip', show);
   if (!show) { strip.innerHTML = ''; return; }
   strip.innerHTML = state.matches.map((m, i) => ({ m, i })).reverse().map(({ m, i }) =>
