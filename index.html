@@ -268,7 +268,7 @@ header .btn { flex-shrink: 0; }
 .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px; margin-top:14px; }
 .dist-wrap { position:relative; padding-top:34px; margin:6px 0 18px; }
 .dist-bubble { position:absolute; top:0; transform:translateX(-50%); background:var(--accent); color:#fff; font-size:13px; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap; pointer-events:none; }
-.dist-bubble::after { content:''; position:absolute; left:50%; bottom:-4px; transform:translateX(-50%); border:4px solid transparent; border-bottom:0; border-top-color:var(--accent); }
+.dist-bubble::after { content:''; position:absolute; left:var(--tip,50%); bottom:-4px; transform:translateX(-50%); border:4px solid transparent; border-bottom:0; border-top-color:var(--accent); }
 .dist-ticks { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:6px; }
 
 /* ---------- Chat extras: header actions, composer tools, emoji, photos, calls ---------- */
@@ -423,7 +423,7 @@ header .btn { flex-shrink: 0; }
         <option value="">How long sober?</option><option>Sober curious</option><option>Under 6 months</option><option>6 months – 1 year</option><option>1–2 years</option><option>2–5 years</option><option>5+ years</option>
       </select>
       <select class="input" id="editProgram">
-        <option value="">Recovery program (optional)</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>None / Self-directed</option><option>Other</option>
+        <option value="">Recovery program (optional)</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>Celebrate Recovery</option><option>Refuge Recovery</option><option>None / Self-directed</option><option>Other</option>
       </select>
       <p class="muted" style="margin:12px 0 8px;">Photos · tap a photo to replace or remove it</p>
       <div id="editPhotoGrid" class="photo-grid"></div>
@@ -468,7 +468,7 @@ header .btn { flex-shrink: 0; }
           <option value="">Select</option><option>Sober curious</option><option>Under 6 months</option><option>6 months – 1 year</option><option>1–2 years</option><option>2–5 years</option><option>5+ years</option>
         </select>
         <select class="input" id="programInput">
-          <option value="">Recovery program (optional)</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>None / Self-directed</option><option>Other</option>
+          <option value="">Recovery program (optional)</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>Celebrate Recovery</option><option>Refuge Recovery</option><option>None / Self-directed</option><option>Other</option>
         </select>
         <button class="btn" onclick="signupNext(2)">Continue</button>
       </div>
@@ -697,7 +697,7 @@ header .btn { flex-shrink: 0; }
         <input class="input" type="number" value="99" min="18" id="filterAgeMax" style="flex:1;">
       </div>
       <select class="input" id="filterGender"><option value="">Any gender</option><option>Male</option><option>Female</option><option>Trans</option><option>Non-binary</option></select>
-      <select class="input" id="filterProgram"><option value="">Any program</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>None</option><option>Other</option></select>
+      <select class="input" id="filterProgram"><option value="">Any program</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>Celebrate Recovery</option><option>Refuge Recovery</option><option>None</option><option>Other</option></select>
       <div class="filter-row">
         <select class="input" id="filterKids" aria-label="Kids"><option value="">Kids: any</option><option value="No kids">No kids</option><option value="Has kids">Has kids</option><option value="Wants kids">Wants kids</option></select>
         <select class="input" id="filterSmoker" aria-label="Smoking"><option value="">Smoking: any</option><option>Non-smoker</option><option>Occasionally</option><option>Smoker</option></select>
@@ -1810,12 +1810,18 @@ function updateDistance() {
   const b = document.getElementById('distBubble');
   b.textContent = v + ' mi';
   const pct = (v - r.min) / (r.max - r.min);
-  b.style.left = `calc(${pct * 100}% + ${(0.5 - pct) * 16}px)`;
+  const W = r.offsetWidth, bw = b.offsetWidth;
+  if (!W || !bw) { b.style.left = `calc(${pct * 100}% + ${(0.5 - pct) * 16}px)`; return; }
+  let x = pct * W + (0.5 - pct) * 16;
+  x = Math.max(bw / 2, Math.min(W - bw / 2, x));
+  b.style.left = x + 'px';
+  const tip = pct * W + (0.5 - pct) * 16 - (x - bw / 2);
+  b.style.setProperty('--tip', Math.max(10, Math.min(bw - 10, tip)) + 'px');
 }
 function openFilters() {
   const f = state.filters;
   document.getElementById('filterDistance').value = f.distance;
-  updateDistance();
+  updateDistance(); requestAnimationFrame(updateDistance);
   document.getElementById('filterAgeMin').value = f.ageMin;
   document.getElementById('filterAgeMax').value = f.ageMax;
   document.getElementById('filterGender').value = f.gender;
