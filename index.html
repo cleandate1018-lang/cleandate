@@ -516,8 +516,9 @@ header .btn { flex-shrink: 0; }
     <div class="content">
       <div id="discoverEmpty" class="empty" style="display:none;">
         <div class="em">🔍</div>
-        <h3>No one matches your filters</h3>
-        <p>Try widening the age range or changing gender/program.</p>
+        <h3 id="emptyTitle">No one matches your filters</h3>
+        <p id="emptyText">Try widening the age range or changing gender/program.</p>
+        <button class="btn" id="seeAgainBtn" style="display:none;" onclick="seeAgain()">See them again</button>
         <button class="btn" onclick="openFilters()">Adjust Filters</button>
         <button class="btn secondary" onclick="resetFilters()">Reset Filters</button>
       </div>
@@ -1314,13 +1315,22 @@ function filteredProfiles() {
   const hidden = new Set(state.removed || []);
   return cloudProfiles.concat(profiles).filter(p => !hidden.has(p.name) && p.age >= (f.ageMin || 18) && p.age <= (f.ageMax || 99) && (!f.gender || p.gender === f.gender) && programMatches(p.program, f.program) && kidsMatches(p.kids, f.kids) && (!f.smoker || p.smoker === f.smoker));
 }
+function deckProfiles() {
+  const seen = new Set(state.seen || []);
+  return filteredProfiles().filter(p => !seen.has(p.name));
+}
+function seeAgain() { state.seen = []; state.current = 0; saveState(); loadProfile(); }
 function currentProfile() {
-  const list = filteredProfiles();
+  const list = deckProfiles();
   if (!list.length) return null;
   return list[((state.current % list.length) + list.length) % list.length];
 }
 function loadProfile() {
   const p = currentProfile();
+  const anyMatch = filteredProfiles().length > 0;
+  document.getElementById('emptyTitle').textContent = anyMatch ? "You've seen everyone for now" : 'No one matches your filters';
+  document.getElementById('emptyText').textContent = anyMatch ? 'Check back soon for new people, or widen your filters to see more.' : 'Try widening the age range or changing gender/program.';
+  document.getElementById('seeAgainBtn').style.display = anyMatch ? '' : 'none';
   document.getElementById('discoverEmpty').style.display = p ? 'none' : 'block';
   document.getElementById('discoverBody').style.display = p ? 'block' : 'none';
   if (!p) return;
@@ -1356,7 +1366,10 @@ function setMainPhoto(i) {
   document.querySelectorAll('#photoGallery img').forEach((img, j) => img.classList.toggle('sel', j === i));
 }
 function nextProfile() {
-  state.current = (state.current + 1) % Math.max(1, filteredProfiles().length);
+  const p = currentProfile();
+  if (p) { state.seen = (state.seen || []).filter(n => n !== p.name).concat(p.name); }
+  const left = deckProfiles().length;
+  state.current = left ? state.current % left : 0;
   saveState();
   loadProfile();
 }
@@ -1933,7 +1946,7 @@ function applyFilters() {
   let min = parseInt(val('filterAgeMin'), 10) || 18, max = parseInt(val('filterAgeMax'), 10) || 99;
   if (min > max) [min, max] = [max, min];
   state.filters = { distance: parseInt(val('filterDistance'), 10) || 25, ageMin: Math.max(18, min), ageMax: max, gender: val('filterGender'), program: val('filterProgram'), kids: val('filterKids'), smoker: val('filterSmoker') };
-  state.current = 0;
+  state.current = 0; state.seen = [];
   saveState();
   const n = filteredProfiles().length;
   toast(n ? `${n} ${n === 1 ? 'person' : 'people'} match your filters` : 'No one matches those filters');
@@ -1941,7 +1954,7 @@ function applyFilters() {
 }
 function resetFilters() {
   state.filters = { ...DEFAULT_FILTERS };
-  state.current = 0;
+  state.current = 0; state.seen = [];
   saveState();
   toast('Filters reset');
   showScreen('discover');
