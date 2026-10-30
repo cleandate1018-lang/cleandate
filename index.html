@@ -425,20 +425,6 @@ header .btn { flex-shrink: 0; }
       <select class="input" id="editProgram">
         <option value="">Recovery program (optional)</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>None / Self-directed</option><option>Other</option>
       </select>
-      <label class="muted" style="display:block; margin:4px 0 4px;">Still use? (select any)</label>
-      <div style="display:grid; grid-template-columns:1fr 1fr; column-gap:8px; margin-bottom:10px;">
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Nothing"> Nothing</label>
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Alcohol"> Alcohol</label>
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Cannabis"> Cannabis</label>
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Nicotine / Vaping"> Nicotine / Vaping</label>
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Kratom"> Kratom</label>
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Prescription meds (as prescribed)"> Prescription meds (as prescribed)</label>
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Psychedelics"> Psychedelics</label>
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Cocaine"> Cocaine</label>
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Opioids"> Opioids</label>
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Meth / Stimulants"> Meth / Stimulants</label>
-        <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="edit-stilluse" value="Other drugs"> Other drugs</label>
-      </div>
       <p class="muted" style="margin:12px 0 8px;">Photos · tap a photo to replace or remove it</p>
       <div id="editPhotoGrid" class="photo-grid"></div>
       <p class="muted" style="margin-top:8px;">What are you looking for?</p>
@@ -484,20 +470,6 @@ header .btn { flex-shrink: 0; }
         <select class="input" id="programInput">
           <option value="">Recovery program (optional)</option><option>AA</option><option>NA</option><option>SMART Recovery</option><option>None / Self-directed</option><option>Other</option>
         </select>
-        <label class="muted" style="display:block; margin:4px 0 4px;">Still use? (select any)</label>
-        <div style="display:grid; grid-template-columns:1fr 1fr; column-gap:8px; margin-bottom:10px;">
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Nothing"> Nothing</label>
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Alcohol"> Alcohol</label>
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Cannabis"> Cannabis</label>
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Nicotine / Vaping"> Nicotine / Vaping</label>
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Kratom"> Kratom</label>
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Prescription meds (as prescribed)"> Prescription meds (as prescribed)</label>
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Psychedelics"> Psychedelics</label>
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Cocaine"> Cocaine</label>
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Opioids"> Opioids</label>
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Meth / Stimulants"> Meth / Stimulants</label>
-          <label class="check-row" style="padding:4px 0; font-size:14px;"><input type="checkbox" class="stilluse-cb" value="Other drugs"> Other drugs</label>
-        </div>
         <button class="btn" onclick="signupNext(2)">Continue</button>
       </div>
       <div id="signupStep3" style="display:none;">
@@ -1175,7 +1147,6 @@ function openEditProfile() {
   set('editName', u.name); set('editAge', u.age); set('editGender', u.gender); set('editLocation', u.location);
   set('editJob', u.job); set('editHeight', u.height); set('editKids', u.kids); set('editSmoker', u.smoker);
   set('editSobriety', u.sober); set('editProgram', u.program); set('editBio', u.bio);
-  document.querySelectorAll('.edit-stilluse').forEach(cb => { cb.checked = (u.stillUse || '').split(', ').includes(cb.value); });
   document.querySelectorAll('.edit-intent').forEach(cb => { cb.checked = (u.looking || []).includes(cb.value); });
   editPhotos = (u.photos || []).slice();
   renderPhotoGrid('edit');
@@ -1195,7 +1166,6 @@ function saveEditProfile() {
     height: val('editHeight'),
     kids: val('editKids'),
     smoker: val('editSmoker'),
-    stillUse: Array.from(document.querySelectorAll('.edit-stilluse:checked')).map(cb => cb.value).join(', '),
     sober: val('editSobriety') || 'Sober curious',
     program: val('editProgram'),
     photos: editPhotos.slice(0, 6),
@@ -1232,7 +1202,7 @@ function updateProfileUI() {
   document.getElementById('soberProgress').style.width = (SOBER_PROGRESS[u.sober] || 50) + '%';
   document.getElementById('soberText').textContent = u.sober + '. Shared only with matches.';
   document.getElementById('userBio').textContent = u.bio || 'No bio yet — add one in Edit Profile.';
-  const rows = [['Gender', u.gender], ['Location', u.location], ['Work', u.job], ['Height', u.height], ['Kids', u.kids], ['Smoking', u.smoker], ['Still use', u.stillUse], ['Program', u.program], ['Photos', (u.photos || []).length + ' / 6']];
+  const rows = [['Gender', u.gender], ['Location', u.location], ['Work', u.job], ['Height', u.height], ['Kids', u.kids], ['Smoking', u.smoker], ['Program', u.program], ['Photos', (u.photos || []).length + ' / 6']];
   document.getElementById('userDetails').innerHTML = rows.map(([k, v]) => `<div><span class="muted">${k}</span><br><strong>${esc(v || '—')}</strong></div>`).join('') +
     `<div style="grid-column:1/-1;"><span class="muted">Intentions</span><br><strong>${esc((u.looking || []).join(', ') || '—')}</strong></div>`;
 }
@@ -1971,7 +1941,6 @@ async function refreshCloudPanel() {
     box.innerHTML = '<table class="cloud-table">' +
       cloudRow('Name', d.name) + cloudRow('Age', d.age) + cloudRow('Gender', d.gender) + cloudRow('Location', d.location) +
       cloudRow('Work', d.job) + cloudRow('Height', d.height) + cloudRow('Kids', d.kids) + cloudRow('Smoking', d.smoker) +
-      cloudRow('Still use', d.stillUse) +
       cloudRow('Sober', d.sober) + cloudRow('Program', d.program) + cloudRow('Looking for', (d.looking || []).join(', ')) +
       cloudRow('Bio', d.bio) + cloudRow('Photos', (d.photos || []).length + (photoKb ? ' (' + photoKb + ')' : '')) +
       cloudRow('Joined', ts(d.createdAt)) + cloudRow('Last saved', ts(d.updatedAt)) +
