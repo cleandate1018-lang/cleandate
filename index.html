@@ -415,6 +415,7 @@ header .btn { flex-shrink: 0; }
         <option value="">Gender</option><option>Male</option><option>Female</option><option>Trans</option><option>Non-binary</option>
       </select>
       <input class="input" id="editLocation" placeholder="City">
+      <select class="input state-select" id="editState"></select>
       <input class="input" id="editJob" placeholder="Job / Occupation">
       <input class="input" id="editHeight" placeholder="Height (e.g. 5'10)">
       <select class="input" id="editKids">
@@ -456,6 +457,7 @@ header .btn { flex-shrink: 0; }
           <option value="">Gender</option><option>Male</option><option>Female</option><option>Trans</option><option>Non-binary</option>
         </select>
         <input class="input" id="locationInput" placeholder="City">
+        <select class="input state-select" id="stateInput"></select>
         <input class="input" id="jobInput" placeholder="Job / Occupation">
         <input class="input" id="heightInput" placeholder="Height (e.g. 5'10)">
         <select class="input" id="kidsInput">
@@ -1181,7 +1183,7 @@ function completeSignup() {
     name: val('name') || 'You',
     age: parseInt(val('age'), 10) || 27,
     gender: val('gender'),
-    location: val('locationInput'),
+    location: joinLocation(val('locationInput'), val('stateInput')),
     job: val('jobInput'),
     height: val('heightInput'),
     kids: val('kidsInput'),
@@ -1203,11 +1205,28 @@ function completeSignup() {
     .catch(e => { console.error(e); toast('Could not save to cloud: ' + friendlyError(e)); });
 }
 
+/* ---------- State (stored inside location as "City, ST") ---------- */
+const US_STATES = [['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','District of Columbia'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];
+const STATE_CODES = new Set(US_STATES.map(x => x[0]).concat(['Outside the US']));
+function fillStateSelects() {
+  const opts = '<option value="">State</option>' + US_STATES.map(([c, n]) => `<option value="${c}">${n}</option>`).join('') + '<option value="Outside the US">Outside the US</option>';
+  document.querySelectorAll('.state-select').forEach(el => { if (!el.options.length) el.innerHTML = opts; });
+}
+function joinLocation(city, st) { city = (city || '').trim(); return city && st ? `${city}, ${st}` : (city || st || ''); }
+function splitLocation(loc) {
+  loc = (loc || '').trim();
+  const m = loc.match(/^(.*?),\s*([^,]+)$/);
+  if (m && STATE_CODES.has(m[2].trim())) return { city: m[1].trim(), state: m[2].trim() };
+  if (STATE_CODES.has(loc)) return { city: '', state: loc };
+  return { city: loc, state: '' };
+}
+document.addEventListener('DOMContentLoaded', fillStateSelects); fillStateSelects();
+
 /* ---------- Edit profile ---------- */
 function openEditProfile() {
   const u = state.user || {};
   const set = (id, v) => { document.getElementById(id).value = v || ''; };
-  set('editName', u.name); set('editAge', u.age); set('editGender', u.gender); set('editLocation', u.location);
+  set('editName', u.name); set('editAge', u.age); set('editGender', u.gender); { const L = splitLocation(u.location); set('editLocation', L.city); set('editState', L.state); }
   set('editJob', u.job); set('editHeight', u.height); set('editKids', u.kids); set('editSmoker', u.smoker);
   set('editSobriety', u.sober); set('editProgram', u.program); set('editBio', u.bio);
   document.querySelectorAll('.edit-intent').forEach(cb => { cb.checked = (u.looking || []).includes(cb.value); });
@@ -1224,7 +1243,7 @@ function saveEditProfile() {
     name: val('editName'),
     age,
     gender: val('editGender'),
-    location: val('editLocation'),
+    location: joinLocation(val('editLocation'), val('editState')),
     job: val('editJob'),
     height: val('editHeight'),
     kids: val('editKids'),
