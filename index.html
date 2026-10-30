@@ -407,6 +407,14 @@ header .btn { flex-shrink: 0; }
 .cl-pack .price { font-size:20px; font-weight:800; color:#b45309; }
 .btn.gold { background:linear-gradient(135deg,#f59e0b,#d97706); }
 .sheet .input { margin:10px 0 0; }
+.sup-lbl { display:block; font-size:14px; font-weight:600; margin:0 0 6px 2px; }
+#support select { appearance:auto; }
+#supMsg { font-family:inherit; resize:vertical; }
+.sup-count { text-align:right; font-size:12px; color:var(--muted); margin:0 2px 12px; }
+.sup-count.near { color:#b45309; }
+.sup-err { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; border-radius:12px; padding:10px 12px; font-size:14px; margin:4px 0 0; }
+.sup-hp { position:absolute !important; left:-9999px !important; width:1px; height:1px; opacity:0; }
+#supBtn:disabled { opacity:.6; cursor:default; }
 .event-meta .who { background:none; border:none; padding:0; font:inherit; color:var(--accent-dark); font-weight:700; cursor:pointer; }
 .person { display:flex; gap:12px; align-items:center; }
 .person .av { width:52px; height:52px; border-radius:50%; background:#e2e8f0 center/cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:20px; }
@@ -773,7 +781,7 @@ header .btn { flex-shrink: 0; }
       <div class="set-h">Help</div>
       <div class="set-card">
         <button class="set-row" id="setSafetyRow" onclick="openSafetyTips()"><span class="lbl">🛡️ Safety tips</span><span class="chev">›</span></button>
-        <a class="set-row" id="setSupportRow" href="mailto:cleandate1018@gmail.com?subject=Clean%20Date%20support"><span class="lbl">✉️ Contact support<small>cleandate1018@gmail.com</small></span><span class="chev">›</span></a>
+        <button class="set-row" id="setSupportRow" onclick="openSupport('settings')"><span class="lbl">✉️ Contact support<small>Send us a message and we’ll reply by email</small></span><span class="chev">›</span></button>
         <button class="set-row" onclick="toast('Terms of Service coming soon')"><span class="lbl">Terms of Service</span><span class="chev">›</span></button>
         <button class="set-row" onclick="toast('Privacy Policy coming soon')"><span class="lbl">Privacy Policy</span><span class="chev">›</span></button>
       </div>
@@ -875,6 +883,43 @@ header .btn { flex-shrink: 0; }
       <div id="premiumThanks" class="card" style="display:none; text-align:center;">
         <h3>You're on the list 🎉</h3>
         <p class="muted">We'll email you as soon as Premium is ready.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Support (sent through Web3Forms; the support address is never shown) -->
+  <div id="support" class="screen">
+    <header><button class="icon-btn" onclick="showScreen(supportBack)">←</button><div class="logo">Contact Support</div><div style="width:38px;"></div></header>
+    <div class="content">
+      <div id="supportForm">
+        <p class="muted" style="margin:0 0 12px;">Questions, problems, or a safety concern? Send us a message and we’ll reply by email.</p>
+        <label class="sup-lbl" for="supTopic">Topic</label>
+        <select id="supTopic" onchange="supClearErr()">
+          <option value="">Choose a topic</option>
+          <option>Account or login</option>
+          <option>Report a safety concern</option>
+          <option>Bug or something not working</option>
+          <option>Billing / Premium / Clean Likes</option>
+          <option>Delete my account</option>
+          <option>Other</option>
+        </select>
+        <label class="sup-lbl" for="supMsg">Message</label>
+        <textarea class="input" id="supMsg" rows="6" maxlength="2000" placeholder="Tell us what’s going on…" oninput="supCount(); supClearErr()" style="margin-bottom:2px;"></textarea>
+        <div class="sup-count" id="supCount" aria-live="polite">0 / 2000</div>
+        <label class="sup-lbl" for="supEmail">Your email (for our reply)</label>
+        <input class="input" id="supEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" oninput="supClearErr()">
+        <label class="sup-lbl" for="supName">Name <span class="muted">(optional)</span></label>
+        <input class="input" id="supName" autocomplete="name" placeholder="Your name">
+        <input type="checkbox" id="supBot" name="botcheck" class="sup-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="sup-err" id="supErr" role="alert" style="display:none;"></div>
+        <button class="btn" id="supBtn" onclick="sendSupport()">Send</button>
+      </div>
+      <div id="supportThanks" class="card" style="display:none; text-align:center;">
+        <div style="font-size:40px;">✅</div>
+        <h3 style="margin:6px 0 4px;">Thanks, we’ll get back to you soon</h3>
+        <p class="muted" style="margin:0;">We’ll reply to <b id="supSentTo"></b>.</p>
+        <button class="btn" onclick="showScreen(supportBack)">Done</button>
+        <button class="btn secondary" id="supAnother" onclick="newSupportMessage()">Send another message</button>
       </div>
     </div>
   </div>
@@ -1116,6 +1161,88 @@ function joinPremiumList() {
     .then(() => { try { localStorage.setItem('cleandate_premium_list', '1'); } catch (e) {} document.getElementById('premiumForm').style.display = 'none'; document.getElementById('premiumThanks').style.display = ''; })
     .catch(() => toast('Something went wrong. Please try again.'))
     .then(() => { btn.disabled = false; btn.textContent = 'Notify me when it launches'; });
+}
+/* ---------- Contact Support (Web3Forms; delivers to the team inbox by access key, no address in the UI) ---------- */
+const SUPPORT_MAX = 2000, SUPPORT_COOLDOWN_MS = 30000;
+let supportBack = 'settings', supTimer = null;
+function supPlatform() {
+  const ua = navigator.userAgent || '';
+  if (window.Capacitor && (!window.Capacitor.isNativePlatform || window.Capacitor.isNativePlatform())) return 'Android app (' + ((window.Capacitor.getPlatform && window.Capacitor.getPlatform()) || 'native') + ')';
+  if (/; wv\)/.test(ua)) return 'Android app (WebView)';
+  return 'Web';
+}
+function supUser() { try { return (window.CD && window.CD.currentUser && window.CD.currentUser()) || null; } catch (e) { return null; } }
+function openSupport(from, topic) {
+  supportBack = from && document.getElementById(from) ? from : 'settings';
+  document.getElementById('supportForm').style.display = '';
+  document.getElementById('supportThanks').style.display = 'none';
+  const t = document.getElementById('supTopic'), m = document.getElementById('supMsg');
+  if (topic) t.value = topic;
+  if (topic === 'Delete my account' && !m.value.trim()) m.value = 'Please delete my Clean Date account and all of my data.';
+  const em = document.getElementById('supEmail'), nm = document.getElementById('supName');
+  const cu = supUser(), u = state.user || {};
+  if (!em.value) em.value = (cu && cu.email) || u.email || '';
+  if (!nm.value) nm.value = u.name || (cu && cu.displayName) || '';
+  supClearErr(); supCount(); supCooldown();
+  showScreen('support');
+}
+function supCount() {
+  const m = document.getElementById('supMsg'), c = document.getElementById('supCount');
+  if (m.value.length > SUPPORT_MAX) m.value = m.value.slice(0, SUPPORT_MAX);
+  c.textContent = m.value.length + ' / ' + SUPPORT_MAX;
+  c.classList.toggle('near', m.value.length > SUPPORT_MAX - 200);
+}
+function supClearErr() { const e = document.getElementById('supErr'); e.style.display = 'none'; e.textContent = ''; }
+function supShowErr(msg) { const e = document.getElementById('supErr'); e.textContent = msg; e.style.display = ''; }
+function supCooldown() {
+  const btn = document.getElementById('supBtn');
+  clearTimeout(supTimer);
+  const last = +(localStorageSafeGet('cleandate_support_last') || 0);
+  const left = SUPPORT_COOLDOWN_MS - (Date.now() - last);
+  if (left > 0) {
+    btn.disabled = true; btn.textContent = 'You can send again in ' + Math.ceil(left / 1000) + 's';
+    supTimer = setTimeout(supCooldown, Math.min(1000, left));
+  } else if (!btn.dataset.sending) { btn.disabled = false; btn.textContent = btn.dataset.retry ? 'Try again' : 'Send'; }
+}
+function supSent(email) {
+  try { localStorage.setItem('cleandate_support_last', String(Date.now())); } catch (e) {}
+  document.getElementById('supSentTo').textContent = email;
+  document.getElementById('supportForm').style.display = 'none';
+  document.getElementById('supportThanks').style.display = '';
+  document.getElementById('supMsg').value = ''; document.getElementById('supTopic').value = '';
+  const btn = document.getElementById('supBtn'); delete btn.dataset.retry; supCount(); supCooldown();
+}
+function newSupportMessage() {
+  document.getElementById('supportThanks').style.display = 'none';
+  document.getElementById('supportForm').style.display = '';
+  supClearErr(); supCount(); supCooldown();
+}
+function sendSupport() {
+  const btn = document.getElementById('supBtn');
+  if (btn.disabled) return;
+  const t = document.getElementById('supTopic'), m = document.getElementById('supMsg'), em = document.getElementById('supEmail'), nm = document.getElementById('supName');
+  const topic = t.value, message = m.value.trim().slice(0, SUPPORT_MAX), email = em.value.trim(), name = nm.value.trim().slice(0, 100);
+  if (!topic) { supShowErr('Please choose a topic.'); t.focus(); return; }
+  if (!message) { supShowErr('Please write a message.'); m.focus(); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { supShowErr('Please enter a valid email so we can reply.'); em.focus(); return; }
+  if (document.getElementById('supBot').checked) { supSent(email); return; }  // honeypot: bots tick it; quietly drop
+  const cu = supUser();
+  btn.dataset.sending = '1'; btn.disabled = true; btn.textContent = 'Sending…'; supClearErr();
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      access_key: '378885d0-7dde-499f-a8ed-10bb06b5800b',
+      subject: 'Clean Date Support: ' + topic, from_name: 'Clean Date Support',
+      email: email, replyto: email, name: name || '(not given)',
+      topic: topic, message: message, uid: (cu && cu.uid) || '(not signed in)',
+      platform: supPlatform(), page: location.href, user_agent: navigator.userAgent, botcheck: ''
+    })
+  }).then(r => r.json().catch(() => ({})).then(j => { if (!r.ok || j.success === false) throw new Error(j.message || r.status); }))
+    .then(() => { delete btn.dataset.sending; supSent(email); })
+    .catch(() => {
+      delete btn.dataset.sending; btn.dataset.retry = '1'; btn.disabled = false; btn.textContent = 'Try again';
+      supShowErr('We couldn’t send your message. Check your connection and tap “Try again”. Your message is still here.');
+    });
 }
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -2443,8 +2570,8 @@ function settingsDeleteAccount() {
     <button class="btn secondary" onclick="closeActionSheet()">Cancel</button>`);
 }
 function settingsDeleteConfirmed() {
-  openActionSheet(`<div class="grab"></div><h3>Almost done</h3><p class="sub">To delete your account, email us at <b>cleandate1018@gmail.com</b> from the email you signed up with, and we’ll remove everything within a few days.</p>
-    <a class="btn" style="display:block; text-align:center; text-decoration:none; box-sizing:border-box;" href="mailto:cleandate1018@gmail.com?subject=Delete%20my%20Clean%20Date%20account">Email cleandate1018@gmail.com</a>
+  openActionSheet(`<div class="grab"></div><h3>Almost done</h3><p class="sub">To finish, send us a deletion request from the support form. We’ll remove everything within a few days.</p>
+    <button class="btn" id="deleteViaSupport" onclick="closeActionSheet(); openSupport('settings', 'Delete my account')">Request account deletion</button>
     <button class="btn secondary" onclick="closeActionSheet()">Close</button>`);
 }
 function openBlockedList() {
