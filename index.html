@@ -348,6 +348,44 @@ header .btn { flex-shrink: 0; }
 .reason input { width:20px; height:20px; accent-color:var(--accent); flex-shrink:0; }
 .sheet .reasons { max-height:46vh; overflow-y:auto; }
 .btn.ghost-danger { background:#fef2f2; color:var(--danger); }
+/* ---------- Settings ---------- */
+.set-h { font-size:12px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); margin:18px 4px 8px; }
+.set-h:first-child { margin-top:2px; }
+.set-card { background:var(--card); border-radius:20px; padding:2px 16px; margin-bottom:6px; box-shadow:0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03); border:1px solid rgba(0,0,0,0.04); }
+.set-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 0; min-height:52px; width:100%; background:none; border:none; font:inherit; color:var(--text); text-align:left; text-decoration:none; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.set-row + .set-row { border-top:1px solid #eef2f6; }
+.set-row.static { cursor:default; }
+.set-row .lbl { flex:1; min-width:0; font-size:16px; font-weight:600; }
+.set-row .lbl small { display:block; font-size:13px; font-weight:400; color:var(--muted); margin-top:2px; overflow:hidden; text-overflow:ellipsis; }
+.set-row .val { color:var(--muted); font-size:14px; white-space:nowrap; }
+.set-row .chev { color:#94a3b8; font-size:22px; line-height:1; }
+.set-row.danger-row .lbl { color:var(--danger); }
+.switch { position:relative; width:50px; height:30px; flex-shrink:0; }
+.switch input { position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; z-index:1; }
+.switch span { position:absolute; inset:0; background:#cbd5e1; border-radius:999px; transition:background .2s; pointer-events:none; }
+.switch span::after { content:''; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .2s; }
+.switch input:checked + span { background:var(--accent); }
+.switch input:checked + span::after { transform:translateX(20px); }
+.seg { display:flex; background:#f1f5f9; border-radius:12px; padding:3px; flex-shrink:0; }
+.seg button { border:none; background:none; font:inherit; font-size:14px; font-weight:700; color:var(--muted); padding:7px 14px; border-radius:9px; cursor:pointer; }
+.seg button.on { background:#fff; color:var(--accent-dark); box-shadow:0 1px 3px rgba(0,0,0,.12); }
+.sheet-scroll { max-height:58vh; overflow-y:auto; text-align:left; }
+.tip-row { display:flex; gap:12px; padding:10px 2px; border-bottom:1px solid #f1f5f9; }
+.tip-row span { font-size:22px; width:28px; text-align:center; flex-shrink:0; }
+.tip-row p { margin:2px 0 0; font-size:14px; color:var(--muted); }
+/* ---------- Clean Likes (super like) ---------- */
+.star-btn { position:relative; flex:0 0 64px; width:64px; padding:0; background:linear-gradient(135deg,#fbbf24,#f59e0b); color:#fff; font-size:26px; box-shadow:0 4px 14px rgba(245,158,11,.35); }
+.star-btn .cnt { position:absolute; top:-7px; right:-7px; min-width:22px; height:22px; padding:0 6px; border-radius:999px; background:#fff; color:#b45309; font-size:12px; font-weight:800; line-height:22px; box-shadow:0 1px 4px rgba(0,0,0,.2); border:1px solid #fde68a; }
+.star-btn.empty { background:linear-gradient(135deg,#fde68a,#fcd34d); }
+.swipe-hint.star { left:50%; top:40%; transform:translateX(-50%); color:#f59e0b; white-space:nowrap; font-size:30px; }
+.star-badge { display:inline-block; font-size:13px; margin-left:4px; vertical-align:1px; }
+.cl-hero { text-align:center; padding:4px 0 6px; }
+.cl-hero .big { font-size:44px; line-height:1; }
+.cl-pack { display:flex; align-items:center; justify-content:space-between; gap:12px; border:2px solid #f59e0b; background:#fffbeb; border-radius:16px; padding:14px 16px; margin:12px 0 4px; }
+.cl-pack b { font-size:17px; }
+.cl-pack .price { font-size:20px; font-weight:800; color:#b45309; }
+.btn.gold { background:linear-gradient(135deg,#f59e0b,#d97706); }
+.sheet .input { margin:10px 0 0; }
 .event-meta .who { background:none; border:none; padding:0; font:inherit; color:var(--accent-dark); font-weight:700; cursor:pointer; }
 .person { display:flex; gap:12px; align-items:center; }
 .person .av { width:52px; height:52px; border-radius:50%; background:#e2e8f0 center/cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:20px; }
@@ -526,6 +564,7 @@ header .btn { flex-shrink: 0; }
         <div class="profile-img" id="profileCard">
           <div class="swipe-hint like">LIKE</div>
           <div class="swipe-hint nope">NOPE</div>
+          <div class="swipe-hint star" id="starHint">CLEAN LIKE ⭐</div>
           <div class="profile-info">
             <div class="profile-name" id="cardName">Alex, 28</div>
             <div class="badge" id="cardSober">1 year sober</div>
@@ -533,6 +572,7 @@ header .btn { flex-shrink: 0; }
         </div>
         <div style="display:flex; gap:12px; margin:4px 0 12px;">
           <button class="btn danger" style="flex:1;" onclick="swipeLeft()">✕ Pass</button>
+          <button class="btn star-btn" id="starBtn" onclick="cleanLike()" title="Clean Like (super like)" aria-label="Clean Like">⭐<span class="cnt" id="starCount">1</span></button>
           <button class="btn" style="flex:1; background:var(--success);" onclick="swipeRight()">♥ Like</button>
         </div>
         <div class="card">
@@ -583,7 +623,7 @@ header .btn { flex-shrink: 0; }
       <button class="icon-btn" onclick="showScreen('matches')">←</button>
       <div class="chat-who">
         <div id="chatAvatar" style="width:36px; height:36px; border-radius:50%; background:#e2e8f0 center/cover; flex-shrink:0;"></div>
-        <div style="min-width:0;"><strong id="chatName">Jordan</strong><div class="muted" id="chatSober" style="font-size:12px;">2 years sober</div></div>
+        <div style="min-width:0;"><div style="display:flex; align-items:center; min-width:0;"><strong id="chatName">Jordan</strong><span class="star-badge" id="chatStar" style="display:none; flex-shrink:0;" title="Clean Like match">⭐</span></div><div class="muted" id="chatSober" style="font-size:12px;">2 years sober</div></div>
       </div>
       <div class="chat-actions">
         <button class="icon-btn" id="voiceCallBtn" onclick="startCall('voice')" title="Voice call" aria-label="Voice call"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
@@ -665,27 +705,47 @@ header .btn { flex-shrink: 0; }
       <div style="width:38px;"></div>
     </header>
     <div class="content">
-      <div class="card" style="text-align:center; background:linear-gradient(135deg,#ccfbf1,#a7f3d0); border:none;">
-        <div style="font-size:36px; margin-bottom:8px;">∞</div>
-        <h2 style="margin:0 0 6px;">Unlimited Likes</h2>
-        <p class="muted">Swipe freely. Free accounts get 25 likes/day.</p>
+      <div class="set-h">Premium</div>
+      <div class="set-card">
+        <button class="set-row" id="setPremiumRow" onclick="openPremium('settings')"><span class="lbl">✨ Clean Date Premium<small>Coming soon. See what's included.</small></span><span class="chev">›</span></button>
+        <button class="set-row" id="setCleanLikesRow" onclick="openCleanLikes()"><span class="lbl">⭐ Clean Likes<small>Stand out with a super like.</small></span><span class="val" id="setCleanLikesVal">1 left</span><span class="chev">›</span></button>
       </div>
-      <div class="card" style="border:2px solid var(--accent);">
-        <h3>Yearly — $49.99</h3>
-        <p class="muted">Just $4.17/month · Save 58%</p>
-        <button class="btn" onclick="toast('Purchases are disabled in the prototype')">Get Yearly</button>
+
+      <div class="set-h">Account</div>
+      <div class="set-card">
+        <div class="set-row static"><span class="lbl">Email<small id="setEmail">Not signed in</small></span></div>
+        <button class="set-row" id="setChangePw" onclick="settingsChangePassword()"><span class="lbl">Change password</span><span class="chev">›</span></button>
+        <button class="set-row danger-row" id="setDeleteAcct" onclick="settingsDeleteAccount()"><span class="lbl">Delete account</span><span class="chev">›</span></button>
       </div>
-      <div class="card">
-        <h3>Monthly — $9.99</h3>
-        <p class="muted">Cancel anytime</p>
-        <button class="btn secondary" onclick="toast('Purchases are disabled in the prototype')">Get Monthly</button>
+
+      <div class="set-h">Privacy</div>
+      <div class="set-card">
+        <label class="set-row"><span class="lbl">Pause my profile<small>Hide me from Discover</small></span><span class="switch"><input type="checkbox" id="set_pause" data-key="pause" onchange="setSetting(this)"><span></span></span></label>
+        <label class="set-row"><span class="lbl">Show my sobriety time to matches</span><span class="switch"><input type="checkbox" id="set_showSober" data-key="showSober" onchange="setSetting(this)"><span></span></span></label>
+        <button class="set-row" id="setBlockedRow" onclick="openBlockedList()"><span class="lbl">Blocked users<small>People you unmatched or reported</small></span><span class="val" id="setBlockedVal">None</span><span class="chev">›</span></button>
       </div>
-      <div class="card">
-        <h3>Weekly — $3.99</h3>
-        <p class="muted">Flexible short-term</p>
-        <button class="btn secondary" onclick="toast('Purchases are disabled in the prototype')">Get Weekly</button>
+
+      <div class="set-h">Notifications</div>
+      <div class="set-card">
+        <label class="set-row"><span class="lbl">New matches</span><span class="switch"><input type="checkbox" id="set_notifMatches" data-key="notifMatches" onchange="setSetting(this)"><span></span></span></label>
+        <label class="set-row"><span class="lbl">Messages</span><span class="switch"><input type="checkbox" id="set_notifMessages" data-key="notifMessages" onchange="setSetting(this)"><span></span></span></label>
+        <label class="set-row"><span class="lbl">Events</span><span class="switch"><input type="checkbox" id="set_notifEvents" data-key="notifEvents" onchange="setSetting(this)"><span></span></span></label>
       </div>
-      <button class="btn danger" onclick="logout()">Log Out</button>
+
+      <div class="set-h">Discovery</div>
+      <div class="set-card">
+        <div class="set-row static"><span class="lbl">Distance unit</span><span class="seg" id="setUnitSeg"><button id="setUnitMi" onclick="setUnit('mi')">Miles</button><button id="setUnitKm" onclick="setUnit('km')">Km</button></span></div>
+      </div>
+
+      <div class="set-h">Help</div>
+      <div class="set-card">
+        <button class="set-row" id="setSafetyRow" onclick="openSafetyTips()"><span class="lbl">🛡️ Safety tips</span><span class="chev">›</span></button>
+        <a class="set-row" id="setSupportRow" href="mailto:cleandate1018@gmail.com?subject=Clean%20Date%20support"><span class="lbl">✉️ Contact support<small>cleandate1018@gmail.com</small></span><span class="chev">›</span></a>
+        <button class="set-row" onclick="toast('Terms of Service coming soon')"><span class="lbl">Terms of Service</span><span class="chev">›</span></button>
+        <button class="set-row" onclick="toast('Privacy Policy coming soon')"><span class="lbl">Privacy Policy</span><span class="chev">›</span></button>
+      </div>
+
+      <button class="btn danger" onclick="logout()" style="margin-top:18px;">Log Out</button>
       <button class="btn secondary" onclick="resetDemo()">Clear local cache</button>
     </div>
   </div>
@@ -755,7 +815,7 @@ header .btn { flex-shrink: 0; }
 
   <!-- Premium (coming soon) -->
   <div id="premium" class="screen">
-    <header><button class="icon-btn" onclick="showScreen('profile')">←</button><div class="logo">Premium</div><div style="width:38px;"></div></header>
+    <header><button class="icon-btn" onclick="showScreen(premiumBack)">←</button><div class="logo">Premium</div><div style="width:38px;"></div></header>
     <div class="content">
       <div class="card" style="text-align:center; background:linear-gradient(135deg,var(--accent),var(--accent-dark)); color:#fff; border:none;">
         <div style="font-size:34px;">✨</div>
@@ -769,6 +829,9 @@ header .btn { flex-shrink: 0; }
         <div class="prem-row"><span>🚀</span><div><b>Monthly profile boost</b><p class="muted">Get shown to more people nearby for 30 minutes.</p></div></div>
         <div class="prem-row"><span>↩️</span><div><b>Undo a swipe</b><p class="muted">Bring back someone you passed by accident.</p></div></div>
         <div class="prem-row"><span>✅</span><div><b>Read receipts</b><p class="muted">Know when your message was seen.</p></div></div>
+      </div>
+      <div class="card" id="premCleanLikes" onclick="openCleanLikes()" style="cursor:pointer; border:2px solid #f59e0b; background:#fffbeb;">
+        <div class="prem-row" style="align-items:center;"><span>⭐</span><div style="flex:1;"><b>Clean Likes ⭐ (5 for $7.99)</b><p class="muted">A super like. They'll see you liked them before they swipe.</p></div><div style="font-size:22px; color:#b45309;">›</div></div>
       </div>
       <div id="premiumForm">
         <p class="muted" style="margin:4px 0 6px;">Want to know when it launches?</p>
@@ -877,6 +940,7 @@ const DEFAULT_EVENTS = [
   { id: 'e1', title: 'Morning Hike + Coffee', date: 'This Saturday', location: 'Local trails', desc: 'Low-pressure group hike followed by coffee.', emoji: '🥾', gradient: 'linear-gradient(135deg,#10b981,#34d399)', interested: 4, going: false },
   { id: 'e2', title: 'Board Game Night', date: 'Next Friday', location: 'Downtown café', desc: 'Alcohol-free social. Bring a game or just yourself.', emoji: '🎲', gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)', interested: 3, going: false }
 ];
+const DEFAULT_SETTINGS = { pause: false, showSober: true, notifMatches: true, notifMessages: true, notifEvents: true, unit: 'mi' };
 const DEFAULT_FILTERS = { distance: 25, ageMin: 18, ageMax: 99, gender: '', program: '', kids: '', smoker: '' };
 
 let state = {
@@ -968,6 +1032,8 @@ function loadState() {
   state.chats = state.chats && typeof state.chats === 'object' ? state.chats : {};
   state.removed = Array.isArray(state.removed) ? state.removed : [];
   state.filters = { ...DEFAULT_FILTERS, ...(state.filters || {}) };
+  state.settings = { ...DEFAULT_SETTINGS, ...(state.settings && typeof state.settings === 'object' ? state.settings : {}) };
+  if (typeof state.cleanLikes !== 'number' || !isFinite(state.cleanLikes) || state.cleanLikes < 0) state.cleanLikes = 1; // everyone starts with 1 free Clean Like
   if (!Array.isArray(state.events) || !state.events.length) state.events = JSON.parse(JSON.stringify(DEFAULT_EVENTS));
   state.events.forEach((e, i) => { if (!e.id) e.id = 'e' + Date.now() + i; if (typeof e.going !== 'boolean') e.going = false; });
   if (state.user && state.loggedIn === undefined) state.loggedIn = true;
@@ -991,7 +1057,9 @@ function saveState() {
   }
 }
 
-function openPremium() {
+let premiumBack = 'profile';
+function openPremium(from) {
+  premiumBack = from === 'settings' ? 'settings' : 'profile';
   const done = localStorageSafeGet('cleandate_premium_list');
   document.getElementById('premiumForm').style.display = done ? 'none' : '';
   document.getElementById('premiumThanks').style.display = done ? '' : 'none';
@@ -1341,6 +1409,7 @@ function loadProfile() {
   cardPhotoIdx = 0;
   gallery.innerHTML = (p.photos || []).map((url, i) => `<img src="${esc(url)}" class="${i === 0 ? 'sel' : ''}" onclick="setMainPhoto(${i})" alt="">`).join('');
   resetCard();
+  updateStarBtn();
 }
 let cardPhotoIdx = 0;
 function resetCard() {
@@ -1349,6 +1418,7 @@ function resetCard() {
   card.style.transform = '';
   card.querySelector('.swipe-hint.like').style.opacity = '0';
   card.querySelector('.swipe-hint.nope').style.opacity = '0';
+  card.querySelector('.swipe-hint.star').style.opacity = '0';
   void card.offsetWidth;
   card.style.transition = '';
 }
@@ -1388,6 +1458,81 @@ function swipeRight() {
   }
 }
 function swipeLeft() { if (!swipeLocked && currentProfile()) animateSwipe(false, true); }
+
+/* ---------- Clean Likes (super like) ---------- */
+function updateStarBtn() {
+  const n = Math.max(0, state.cleanLikes || 0);
+  const c = document.getElementById('starCount'), b = document.getElementById('starBtn');
+  if (c) c.textContent = n;
+  if (b) b.classList.toggle('empty', n === 0);
+  const v = document.getElementById('setCleanLikesVal');
+  if (v) v.textContent = n + ' left';
+}
+function cleanLike() {
+  if (swipeLocked) return;
+  if ((state.cleanLikes || 0) <= 0) { openCleanLikes(); return; }
+  const p = currentProfile();
+  if (!p) return;
+  state.cleanLikes = Math.max(0, (state.cleanLikes || 0) - 1);
+  updateStarBtn();
+  const already = state.matches.findIndex(m => m.name === p.name);
+  const isMatch = window.__forceMatch !== undefined ? window.__forceMatch : Math.random() < 0.9;
+  const card = document.getElementById('profileCard');
+  swipeLocked = true;
+  card.style.transition = 'transform 0.2s ease-out';
+  card.style.transform = 'scale(1.03)';
+  card.querySelector('.swipe-hint.like').style.opacity = '0';
+  card.querySelector('.swipe-hint.nope').style.opacity = '0';
+  card.querySelector('.swipe-hint.star').style.opacity = '1';
+  setTimeout(() => { card.style.transition = 'transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)'; card.style.transform = 'translateY(-620px) scale(0.9)'; }, 380);
+  toast('Clean Like sent ⭐');
+  if (already !== -1) state.matches[already].starred = true;
+  if (isMatch && already === -1) {
+    state.matches.push({ name: p.name, sober: p.sober, photo: (p.photos || [])[0] || '', starred: true });
+    lastMatchIndex = state.matches.length - 1;
+    saveState();
+    document.getElementById('matchName').textContent = p.name;
+    document.getElementById('matchPhoto').style.backgroundImage = (p.photos || [])[0] ? cssUrl(p.photos[0]) : 'linear-gradient(135deg,#0d9488,#5eead4)';
+    setTimeout(() => document.getElementById('matchOverlay').classList.add('show'), 800);
+  } else {
+    saveState();
+    setTimeout(() => { swipeLocked = false; nextProfile(); }, 820);
+  }
+}
+let cleanLikesBusy = false;
+function openCleanLikes() {
+  const n = Math.max(0, state.cleanLikes || 0);
+  const done = localStorageSafeGet('cleandate_cleanlikes_list');
+  let email = '';
+  try { const cu = window.CD && window.CD.currentUser && window.CD.currentUser(); if (cu && cu.email) email = cu.email; } catch (e) {}
+  if (!email) { const pe = document.getElementById('premiumEmail'); if (pe && pe.value) email = pe.value; }
+  openActionSheet(`<div class="grab"></div><div class="cl-hero"><div class="big">⭐</div><h3>Clean Likes</h3><p class="sub">Stand out. They'll see you liked them before they swipe.</p></div>
+    <p class="muted" style="text-align:center; font-size:14px; margin:0;" id="clBalance">You have ${n} Clean Like${n === 1 ? '' : 's'} left.</p>
+    <div class="cl-pack"><div><b>5 Clean Likes</b><div class="muted" style="font-size:13px;">One-time pack</div></div><div class="price">$7.99</div></div>
+    <div id="clForm" style="display:${done ? 'none' : ''};">
+      <p class="muted" style="font-size:13px; margin:10px 0 0;">Payments aren't live yet. Leave your email and we'll tell you when you can buy.</p>
+      <input class="input" id="cleanLikesEmail" type="email" placeholder="Your email" autocomplete="email" value="${esc(email)}">
+      <button class="btn gold" id="cleanLikesBtn" onclick="joinCleanLikesList()">Coming soon. Notify me</button>
+    </div>
+    <div id="clThanks" class="card" style="display:${done ? '' : 'none'}; text-align:center; margin:12px 0 0;"><h3 style="margin:0 0 4px;">You're on the list 🎉</h3><p class="muted" style="margin:0;">We'll email you as soon as Clean Likes are available.</p></div>
+    <button class="btn secondary" onclick="closeActionSheet()">Close</button>`);
+}
+function joinCleanLikesList() {
+  if (cleanLikesBusy) return;
+  const em = document.getElementById('cleanLikesEmail');
+  const email = em.value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { toast('Please enter a valid email'); em.focus(); return; }
+  const btn = document.getElementById('cleanLikesBtn');
+  cleanLikesBusy = true; btn.disabled = true; btn.textContent = 'Saving…';
+  const u = state.user || {};
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ access_key: '378885d0-7dde-499f-a8ed-10bb06b5800b', subject: 'New Clean Date Clean Likes interest', from_name: 'Clean Date Clean Likes', email: email, name: u.name || '(not given)', location: u.location || '(not given)', interest: '5 Clean Likes for $7.99', botcheck: '' })
+  }).then(r => r.json().catch(() => ({})).then(j => { if (!r.ok || j.success === false) throw new Error(j.message || r.status); }))
+    .then(() => { try { localStorage.setItem('cleandate_cleanlikes_list', '1'); } catch (e) {} const f = document.getElementById('clForm'), t = document.getElementById('clThanks'); if (f) f.style.display = 'none'; if (t) t.style.display = ''; })
+    .catch(() => toast('Something went wrong. Please try again.'))
+    .then(() => { cleanLikesBusy = false; const b = document.getElementById('cleanLikesBtn'); if (b) { b.disabled = false; b.textContent = 'Coming soon. Notify me'; } });
+}
 function animateSwipe(liked, advance = true) {
   const card = document.getElementById('profileCard');
   swipeLocked = true;
@@ -1470,7 +1615,7 @@ function renderMatches() {
     const m = state.matches[i];
     return `<div style="text-align:center; cursor:pointer; flex-shrink:0;" onclick="openChat(${i})">
       <div style="width:72px; height:72px; border-radius:50%; background:${esc(cssUrl(m.photo))} center/cover; border:3px solid var(--accent);"></div>
-      <div style="font-size:12px; margin-top:6px; font-weight:600;">${esc(m.name)}</div>
+      <div style="font-size:12px; margin-top:6px; font-weight:600;">${esc(m.name)}${m.starred ? '<span class="star-badge">⭐</span>' : ''}</div>
     </div>`;
   }).join('') || '<p class="muted">No new matches yet. Keep swiping!</p>';
   ml.innerHTML = idxs.slice().reverse().map(i => {
@@ -1480,7 +1625,7 @@ function renderMatches() {
     const preview = last ? (last.from === 'me' ? 'You: ' : '') + (last.img ? '📷 Photo' : last.text) : 'Say hi 👋';
     return `<div class="card" style="display:flex; gap:12px; align-items:center; cursor:pointer;" onclick="openChat(${i})">
       <div style="width:56px; height:56px; border-radius:50%; background:${esc(cssUrl(m.photo))} center/cover; flex-shrink:0;"></div>
-      <div style="min-width:0; flex:1;"><strong>${esc(m.name)}</strong><div class="muted" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(preview)}</div></div>
+      <div style="min-width:0; flex:1;"><strong>${esc(m.name)}</strong>${m.starred ? '<span class="star-badge" title="Clean Like match">⭐</span>' : ''}<div class="muted" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(preview)}</div></div>
       <button class="icon-btn more-btn" aria-label="More options for ${esc(m.name)}" onclick="event.stopPropagation(); openMatchMenu(${i})"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
     </div>`;
   }).join('') || `<div class="empty"><div class="em">💬</div><h3>No conversations yet</h3><p>When you match with someone, your chat will show up here.</p><button class="btn" onclick="showScreen('discover')">Start Swiping</button></div>`;
@@ -1491,6 +1636,7 @@ function openChat(i) {
   if (!m) return;
   activeChat = i;
   document.getElementById('chatName').textContent = m.name;
+  document.getElementById('chatStar').style.display = m.starred ? '' : 'none';
   document.getElementById('chatSober').textContent = m.sober;
   document.getElementById('chatAvatar').style.backgroundImage = cssUrl(m.photo);
   renderChatStrip();
@@ -1911,10 +2057,14 @@ function addEvent() {
 function updateDistance() {
   const r = document.getElementById('filterDistance');
   const v = parseInt(r.value, 10);
-  const label = v + (v === 1 ? ' mile' : ' miles');
+  const km = state.settings && state.settings.unit === 'km';
+  const kv = Math.round(v * 1.609);
+  const label = km ? kv + ' km' : v + (v === 1 ? ' mile' : ' miles');
   document.getElementById('distLabel').textContent = label;
   const b = document.getElementById('distBubble');
-  b.textContent = v + ' mi';
+  b.textContent = km ? kv + ' km' : v + ' mi';
+  const ticks = document.querySelectorAll('#filters .dist-ticks span');
+  if (ticks.length === 5) [1, 25, 50, 75, 100].forEach((t, i) => { const n = km ? Math.round(t * 1.609) : t; ticks[i].textContent = (i === 0 || i === 4) ? n + (km ? ' km' : ' mi') : n; });
   const pct = (v - r.min) / (r.max - r.min);
   const W = r.offsetWidth, bw = b.offsetWidth;
   if (!W || !bw) { b.style.left = `calc(${pct * 100}% + ${(0.5 - pct) * 16}px)`; return; }
@@ -2061,6 +2211,68 @@ async function refreshCloudPanel() {
   } catch (e) { console.error(e); box.textContent = 'Could not read from cloud: ' + friendlyError(e); }
 }
 
+/* ---------- Settings ---------- */
+function renderSettings() {
+  const st = state.settings || (state.settings = { ...DEFAULT_SETTINGS });
+  document.querySelectorAll('#settings input[data-key]').forEach(i => { i.checked = !!st[i.dataset.key]; });
+  document.getElementById('setUnitMi').classList.toggle('on', st.unit !== 'km');
+  document.getElementById('setUnitKm').classList.toggle('on', st.unit === 'km');
+  let email = '';
+  try { const cu = window.CD && window.CD.currentUser && window.CD.currentUser(); if (cu) email = cu.email || 'Signed in with Google'; } catch (e) {}
+  document.getElementById('setEmail').textContent = email || 'Not signed in';
+  const n = (state.removed || []).length;
+  document.getElementById('setBlockedVal').textContent = n ? n + (n === 1 ? ' person' : ' people') : 'None';
+  updateStarBtn();
+}
+function setSetting(input) {
+  state.settings = state.settings || { ...DEFAULT_SETTINGS };
+  state.settings[input.dataset.key] = !!input.checked;
+  saveState();
+  if (input.dataset.key === 'pause') toast(input.checked ? 'Profile paused. You’re hidden from Discover' : 'Profile visible again');
+}
+function setUnit(u) {
+  state.settings = state.settings || { ...DEFAULT_SETTINGS };
+  state.settings.unit = u === 'km' ? 'km' : 'mi';
+  saveState();
+  renderSettings();
+}
+async function settingsChangePassword() {
+  let cu = null;
+  try { cu = window.CD && window.CD.currentUser && window.CD.currentUser(); } catch (e) {}
+  if (!cu || !cu.email || !window.CD.resetPassword) { toast('Sign in with email to change your password'); return; }
+  try { await window.CD.resetPassword(cu.email); toast('Password reset email sent to ' + cu.email); }
+  catch (e) { toast('Couldn’t send reset email. Try again later'); }
+}
+function settingsDeleteAccount() {
+  openActionSheet(`<div class="grab"></div><h3>Delete your account?</h3><p class="sub">This permanently removes your profile, matches, and chats.</p>
+    <button class="btn danger" id="confirmDeleteAcct" onclick="settingsDeleteConfirmed()">Yes, delete my account</button>
+    <button class="btn secondary" onclick="closeActionSheet()">Cancel</button>`);
+}
+function settingsDeleteConfirmed() {
+  openActionSheet(`<div class="grab"></div><h3>Almost done</h3><p class="sub">To delete your account, email us at <b>cleandate1018@gmail.com</b> from the email you signed up with, and we’ll remove everything within a few days.</p>
+    <a class="btn" style="display:block; text-align:center; text-decoration:none; box-sizing:border-box;" href="mailto:cleandate1018@gmail.com?subject=Delete%20my%20Clean%20Date%20account">Email cleandate1018@gmail.com</a>
+    <button class="btn secondary" onclick="closeActionSheet()">Close</button>`);
+}
+function openBlockedList() {
+  const list = state.removed || [];
+  openActionSheet(`<div class="grab"></div><h3>Blocked users</h3><p class="sub">People you unmatched or reported won’t show up again.</p>
+    <div class="sheet-scroll">${list.length ? list.map(n => `<div class="reason" style="cursor:default;">🚫 ${esc(n)}</div>`).join('') : '<p class="muted" style="text-align:center; padding:12px 0;">No one blocked</p>'}</div>
+    <button class="btn secondary" onclick="closeActionSheet()">Close</button>`);
+}
+const SAFETY_TIPS = [
+  ['☕', 'Meet in public', 'Pick a busy, public place for the first few dates, like a coffee shop or park.'],
+  ['📱', 'Tell a friend', 'Share who you’re meeting, where, and when. Check in after.'],
+  ['🌿', 'Choose sober-friendly spots', 'Skip bars. Try coffee, a walk, a museum, or a sober event.'],
+  ['🚗', 'Get there on your own', 'Drive yourself or take a ride so you can leave whenever you want.'],
+  ['💛', 'Trust your gut', 'If something feels off, it’s okay to leave. Your recovery comes first.'],
+  ['🛡️', 'Report and block', 'If anyone pressures you to drink or use, or makes you uncomfortable, tap ⋯ in the chat to report or unmatch.']
+];
+function openSafetyTips() {
+  openActionSheet(`<div class="grab"></div><h3>Safety tips</h3><p class="sub">Dating sober, safely</p>
+    <div class="sheet-scroll" id="safetyTips">${SAFETY_TIPS.map(([e, t, d]) => `<div class="tip-row"><span>${e}</span><div><b>${esc(t)}</b><p>${esc(d)}</p></div></div>`).join('')}</div>
+    <button class="btn secondary" onclick="closeActionSheet()">Got it</button>`);
+}
+
 function createFloatingPhotos() {
   const container = document.getElementById('floatingPhotos');
   if (!container) return;
@@ -2094,7 +2306,7 @@ updateProfileUI();
 if (state.user && state.loggedIn) document.getElementById('authLoading').classList.add('show');
 setTimeout(() => document.getElementById('authLoading').classList.remove('show'), 8000);
 const _origShowScreen = showScreen;
-showScreen = function (id) { _origShowScreen(id); if (id === 'settings') refreshCloudPanel(); };
+showScreen = function (id) { _origShowScreen(id); if (id === 'settings') renderSettings(); };
 </script>
 <script type="module">
 // ---------- Clean Date: Firebase (Auth + Firestore) ----------
