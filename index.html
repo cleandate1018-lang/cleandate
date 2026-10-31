@@ -269,6 +269,7 @@ header .btn { flex-shrink: 0; }
 .loc-err strong { display:block; font-size:15px; margin-bottom:6px; }
 .loc-err ol { margin:6px 0 0 18px; padding:0; }
 .loc-err li { margin:3px 0; }
+.loc-err .btn.loc-settings { margin:12px 0 0; background:#fff; color:#991b1b; border:1px solid #fca5a5; }
 .check-row input { width:20px; height:20px; accent-color: var(--accent); }
 #chat .content { padding-bottom: calc(200px + env(safe-area-inset-bottom)); }
 .composer { position:absolute; left:0; right:0; bottom:calc(72px + env(safe-area-inset-bottom)); padding:8px 16px 10px; background:rgba(248,250,252,.96); backdrop-filter:blur(12px); border-top:1px solid rgba(0,0,0,.04); z-index:15; }
@@ -462,6 +463,7 @@ header .btn { flex-shrink: 0; }
 .onb-mosaic::after { content:''; position:absolute; left:0; right:0; bottom:0; height:55%; background:linear-gradient(rgba(248,250,252,0), var(--bg) 85%); }
 .btn.google { background:#fff; color:#1f2937; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; gap:10px; }
 .auth-or { text-align:center; color:var(--muted); font-size:13px; margin:6px 0 12px; }
+html.cd-nogoogle .btn.google, html.cd-nogoogle .auth-or { display:none !important; }
 .auth-err { color:var(--danger); font-size:14px; min-height:18px; margin:-4px 0 10px; }
 .link-btn { background:none; border:none; color:var(--accent-dark); font-weight:600; font-size:14px; cursor:pointer; padding:8px 0; }
 .cloud-table { width:100%; font-size:13px; border-collapse:collapse; }
@@ -844,7 +846,7 @@ header .btn { flex-shrink: 0; }
     <div class="content">
       <h2 style="font-size:24px; margin-bottom:6px;">Join Clean Date</h2>
       <p class="muted" style="margin-bottom:16px;">First, create your account. Next you'll build your profile.</p>
-      <button class="btn google" onclick="googleSignIn('signupError')"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> Continue with Google</button>
+      <button class="btn google" id="googleSignupBtn" onclick="googleSignIn('signupError')"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> Continue with Google</button>
       <div class="auth-or">or sign up with email</div>
       <input class="input" id="signupEmail" type="email" placeholder="Email" autocomplete="email">
       <input class="input" id="signupPassword" type="password" placeholder="Password (at least 6 characters)" autocomplete="new-password">
@@ -860,7 +862,7 @@ header .btn { flex-shrink: 0; }
     <div class="content">
       <h2 style="font-size:24px; margin-bottom:6px;">Welcome back</h2>
       <p class="muted" style="margin-bottom:16px;">Good to see you again.</p>
-      <button class="btn google" onclick="googleSignIn('loginError')"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> Continue with Google</button>
+      <button class="btn google" id="googleLoginBtn" onclick="googleSignIn('loginError')"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> Continue with Google</button>
       <div class="auth-or">or</div>
       <input class="input" id="loginEmail" type="email" placeholder="Email" autocomplete="email">
       <input class="input" id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
@@ -1193,6 +1195,39 @@ function joinPremiumList() {
 /* ---------- Contact Support (Web3Forms; delivers to the team inbox by access key, no address in the UI) ---------- */
 const SUPPORT_MAX = 2000, SUPPORT_COOLDOWN_MS = 30000;
 let supportBack = 'settings', supTimer = null;
+/* ---------- Android app detection (Capacitor shell com.cleandate.app loads this same page) ---------- */
+function cdIsNativeApp() {
+  try {
+    if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) return true;
+  } catch (e) {}
+  return /CleanDateApp\//.test(navigator.userAgent || '');
+}
+// Google blocks its sign-in page inside embedded WebViews (our app, and in-app browsers like Instagram/TikTok on Android)
+function cdIsEmbeddedWebView() { return cdIsNativeApp() || /; wv\)/.test(navigator.userAgent || ''); }
+function cdCanOpenAppSettings() {
+  try { return !!(cdIsNativeApp() && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('AppSettings')); } catch (e) { return false; }
+}
+let cdSettingsOpened = false;
+function cdOpenAppSettings(target) {
+  try {
+    const P = window.Capacitor.Plugins && window.Capacitor.Plugins.AppSettings;
+    if (!P) throw new Error('no plugin');
+    cdSettingsOpened = true;
+    P.open({ target: target || 'app' }).catch(() => { cdSettingsOpened = false; toast('Open your phone’s Settings, then Apps, then Clean Date'); });
+  } catch (e) { cdSettingsOpened = false; toast('Open your phone’s Settings, then Apps, then Clean Date'); }
+}
+(function cdMarkPlatform() {
+  const root = document.documentElement;
+  if (cdIsEmbeddedWebView()) root.classList.add('cd-nogoogle');
+  if (cdIsNativeApp()) root.classList.add('cd-app');
+})();
+// Back from the phone's Settings: try the location again automatically
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !cdSettingsOpened) return;
+  cdSettingsOpened = false;
+  const sig = document.getElementById('signup');
+  if (signupGeoErr && !signupGeo && currentSignupStep === SIGNUP_STEPS && sig && sig.classList.contains('active')) setTimeout(requestSignupLocation, 400);
+});
 function supPlatform() {
   const ua = navigator.userAgent || '';
   if (window.Capacitor && (!window.Capacitor.isNativePlatform || window.Capacitor.isNativePlatform())) return 'Android app (' + ((window.Capacitor.getPlatform && window.Capacitor.getPlatform()) || 'native') + ')';
@@ -1447,16 +1482,30 @@ function renderSignupLocation() {
   allow.disabled = signupGeoBusy;
   allow.textContent = signupGeoBusy ? 'Getting your location…' : (signupGeoErr ? '↻ Try again' : '📍 Allow location');
   if (!signupGeoErr) { st.innerHTML = ''; return; }
-  const steps = '<ol><li><b>Android (Chrome):</b> tap the lock icon by the address bar, then <b>Permissions</b>, then <b>Location</b>, and choose <b>Allow</b>.</li>' +
+  const inApp = cdIsNativeApp(), canOpen = inApp && cdCanOpenAppSettings();
+  const steps = inApp
+    ? (signupGeoErr === 'denied'
+      ? '<ol><li>Open your phone’s <b>Settings</b>, then <b>Apps</b>, then <b>Clean Date</b>.</li>' +
+        '<li>Tap <b>Permissions</b>, then <b>Location</b>, and choose <b>Allow only while using the app</b>.</li>' +
+        '<li>Come back to Clean Date and tap <b>Try again</b>.</li></ol>'
+      : '<ol><li>Swipe down from the top of your screen and make sure <b>Location</b> is turned on.</li>' +
+        '<li>Check that Clean Date is allowed: <b>Settings</b>, then <b>Apps</b>, then <b>Clean Date</b>, then <b>Permissions</b>, then <b>Location</b>, then <b>Allow</b>.</li>' +
+        '<li>Come back and tap <b>Try again</b>.</li></ol>')
+    : '<ol><li><b>Android (Chrome):</b> tap the lock icon by the address bar, then <b>Permissions</b>, then <b>Location</b>, and choose <b>Allow</b>.</li>' +
     '<li><b>iPhone (Safari):</b> open the <b>Settings</b> app, then <b>Privacy &amp; Security</b>, then <b>Location Services</b>. Turn it on and set <b>Safari Websites</b> to <b>While Using</b>.</li>' +
     '<li>Make sure your phone’s Location is turned on, then tap <b>Try again</b>.</li></ol>';
+  const settingsBtn = canOpen && signupGeoErr !== 'unsupported'
+    ? (signupGeoErr === 'denied'
+      ? '<button class="btn loc-settings" id="openAppSettingsBtn" onclick="cdOpenAppSettings(\'app\')">⚙️ Open Clean Date settings</button>'
+      : '<button class="btn loc-settings" id="openLocSettingsBtn" onclick="cdOpenAppSettings(\'location\')">⚙️ Open location settings</button>')
+    : '';
   const head = signupGeoErr === 'denied' ? 'Location is required to use Clean Date'
-    : signupGeoErr === 'unsupported' ? 'This browser can’t share your location'
+    : signupGeoErr === 'unsupported' ? (inApp ? 'Location isn’t available' : 'This browser can’t share your location')
     : 'We couldn’t get your location';
-  const lead = signupGeoErr === 'denied' ? 'Location access was blocked. To turn it on:'
-    : signupGeoErr === 'unsupported' ? 'Please open Clean Date in Chrome or Safari on your phone. Location is required to create an account.'
+  const lead = signupGeoErr === 'denied' ? (inApp ? 'Clean Date isn’t allowed to use your location. To turn it on:' : 'Location access was blocked. To turn it on:')
+    : signupGeoErr === 'unsupported' ? (inApp ? 'Please update Clean Date or try again later. Location is required to create an account.' : 'Please open Clean Date in Chrome or Safari on your phone. Location is required to create an account.')
     : 'Location is required to create an account. Check that it’s on:';
-  st.innerHTML = `<div class="loc-err" role="alert"><strong>${head}</strong>${lead}${signupGeoErr === 'unsupported' ? '' : steps}</div>`;
+  st.innerHTML = `<div class="loc-err" role="alert"><strong>${head}</strong>${lead}${signupGeoErr === 'unsupported' ? '' : steps}${settingsBtn}</div>`;
 }
 function requestSignupLocation() {
   if (signupGeoBusy) return;
@@ -1613,7 +1662,7 @@ function useMyLocation() {
     saveState(); updateDistFrom();
     toast('Using your current location for distance');
     if (window.CD && window.CD.saveCoords) window.CD.saveCoords(state.user.lat, state.user.lng).catch(e => console.warn('Could not save location to cloud', e));
-  }, () => toast('Couldn’t get your location. Using your city instead'), { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
+  }, err => toast(cdIsNativeApp() && err && err.code === 1 ? 'Location is off for Clean Date. Turn it on in Settings > Apps > Clean Date > Permissions. Using your city for now' : 'Couldn’t get your location. Using your city instead'), { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
 }
 
 /* ---------- Edit profile ---------- */
@@ -2928,6 +2977,7 @@ async function createAccount() {
 }
 async function googleSignIn(errId) {
   clearAuthErrors();
+  if (cdIsEmbeddedWebView()) return setAuthError(errId, 'Google sign-in isn’t available in the app yet. Please use your email and a password.');
   if (!cdReady(errId)) return;
   try { await window.CD.google(); }
   catch (e) { setAuthError(errId, friendlyError(e)); }
