@@ -515,6 +515,9 @@ html.cd-nogoogle .btn.google, html.cd-nogoogle .auth-or { display:none !importan
       <select class="input" id="editSmoker">
         <option value="">Smoking</option><option>Non-smoker</option><option>Occasionally</option><option>Smoker</option>
       </select>
+      <select class="input" id="editReligion" aria-label="Religion (optional)">
+        <option value="">Religion (optional)</option><option>Christian</option><option>Catholic</option><option>Jewish</option><option>Muslim</option><option>Hindu</option><option>Buddhist</option><option>Spiritual but not religious</option><option>Agnostic</option><option>Atheist</option><option>Other</option><option>Prefer not to say</option>
+      </select>
       <select class="input" id="editSobriety">
         <option value="">How long sober?</option><option>Sober curious</option><option>Under 6 months</option><option>6 months – 1 year</option><option>1–2 years</option><option>2–5 years</option><option>5+ years</option>
       </select>
@@ -556,6 +559,9 @@ html.cd-nogoogle .btn.google, html.cd-nogoogle .auth-or { display:none !importan
         </select>
         <select class="input" id="smokerInput">
           <option value="">Smoking</option><option>Non-smoker</option><option>Occasionally</option><option>Smoker</option>
+        </select>
+        <select class="input" id="religionInput" aria-label="Religion (optional)">
+          <option value="">Religion (optional)</option><option>Christian</option><option>Catholic</option><option>Jewish</option><option>Muslim</option><option>Hindu</option><option>Buddhist</option><option>Spiritual but not religious</option><option>Agnostic</option><option>Atheist</option><option>Other</option><option>Prefer not to say</option>
         </select>
         <button class="btn" onclick="signupNext(1)">Continue</button>
       </div>
@@ -643,6 +649,7 @@ html.cd-nogoogle .btn.google, html.cd-nogoogle .auth-or { display:none !importan
             <div><span class="muted">Kids</span><br><strong id="kids">—</strong></div>
             <div><span class="muted">Height</span><br><strong id="height">—</strong></div>
             <div><span class="muted">Smoking</span><br><strong id="smoker">—</strong></div>
+            <div><span class="muted">Religion</span><br><strong id="religion">—</strong></div>
             <div><span class="muted">Work</span><br><strong id="job">—</strong></div>
             <div><span class="muted">Location</span><br><strong id="location">—</strong></div>
             <div><span class="muted">Program</span><br><strong id="program">—</strong></div>
@@ -1056,32 +1063,32 @@ let state = {
 };
 
 const profiles = [
-  { name: "Alex", age: 28, sober: "1 year sober", bio: "Hiking, coffee dates, board games, and early mornings. Looking for someone who gets that life is better without the hangover.", tags: ["Hiking","Coffee","Recovery","Outdoors"], kids: "No kids", height: "5'10\"", smoker: "Non-smoker", job: "Graphic Designer", location: "New Haven, CT", lat: 41.3083, lng: -72.9279, looking: ["Dating","Long-term"], program: "AA", gender: "Male", photos: [
+  { name: "Alex", age: 28, sober: "1 year sober", bio: "Hiking, coffee dates, board games, and early mornings. Looking for someone who gets that life is better without the hangover.", tags: ["Hiking","Coffee","Recovery","Outdoors"], kids: "No kids", height: "5'10\"", smoker: "Non-smoker", religion: "Spiritual but not religious", job: "Graphic Designer", location: "New Haven, CT", lat: 41.3083, lng: -72.9279, looking: ["Dating","Long-term"], program: "AA", gender: "Male", photos: [
     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&h=1000&fit=crop"
   ] },
-  { name: "Taylor", age: 31, sober: "6 months sober", bio: "Looking for someone who prefers sunrise hikes over late nights. Sober and proud.", tags: ["Outdoors","Reading","Fitness"], kids: "1 kid (part-time)", height: "5'7\"", smoker: "Non-smoker", job: "Nurse", location: "Stratford, CT", lat: 41.1845, lng: -73.1332, looking: ["Dating"], program: "NA", gender: "Female", photos: [
+  { name: "Taylor", age: 31, sober: "6 months sober", bio: "Looking for someone who prefers sunrise hikes over late nights. Sober and proud.", tags: ["Outdoors","Reading","Fitness"], kids: "1 kid (part-time)", height: "5'7\"", smoker: "Non-smoker", religion: "Christian", job: "Nurse", location: "Stratford, CT", lat: 41.1845, lng: -73.1332, looking: ["Dating"], program: "NA", gender: "Female", photos: [
     "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=1000&fit=crop"
   ] },
-  { name: "Morgan", age: 26, sober: "2 years sober", bio: "Sober curious turned committed. Love cooking and live music (the early sets).", tags: ["Cooking","Music","Art"], kids: "No kids", height: "5'4\"", smoker: "Non-smoker", job: "Marketing Manager", location: "Bridgeport, CT", lat: 41.1865, lng: -73.1952, looking: ["Dating","Long-term"], program: "None", gender: "Trans", photos: [
+  { name: "Morgan", age: 26, sober: "2 years sober", bio: "Sober curious turned committed. Love cooking and live music (the early sets).", tags: ["Cooking","Music","Art"], kids: "No kids", height: "5'4\"", smoker: "Non-smoker", religion: "Agnostic", job: "Marketing Manager", location: "Bridgeport, CT", lat: 41.1865, lng: -73.1952, looking: ["Dating","Long-term"], program: "None", gender: "Trans", photos: [
     "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&h=1000&fit=crop"
   ] },
-  { name: "Riley", age: 29, sober: "8 months sober", bio: "Coffee enthusiast, trail runner, and recovery advocate. Let's build something real.", tags: ["Running","Coffee","Community"], kids: "Wants kids someday", height: "6'1\"", smoker: "Non-smoker", job: "Software Engineer", location: "Hartford, CT", lat: 41.7658, lng: -72.6734, looking: ["Dating"], program: "Other", gender: "Male", photos: [
+  { name: "Riley", age: 29, sober: "8 months sober", bio: "Coffee enthusiast, trail runner, and recovery advocate. Let's build something real.", tags: ["Running","Coffee","Community"], kids: "Wants kids someday", height: "6'1\"", smoker: "Non-smoker", religion: "Catholic", job: "Software Engineer", location: "Hartford, CT", lat: 41.7658, lng: -72.6734, looking: ["Dating"], program: "Other", gender: "Male", photos: [
     "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1463453091185-61582044d556?w=800&h=1000&fit=crop"
   ] },
-  { name: "Sophia", age: 27, sober: "1.5 years sober", bio: "Love hiking, yoga, and good coffee. Looking for genuine connections.", tags: ["Yoga","Hiking","Coffee","Travel"], kids: "No kids", height: "5'6\"", smoker: "Non-smoker", job: "Yoga Instructor", location: "Fairfield, CT", lat: 41.1412, lng: -73.2637, looking: ["Dating","Long-term"], program: "AA", gender: "Female", photos: [
+  { name: "Sophia", age: 27, sober: "1.5 years sober", bio: "Love hiking, yoga, and good coffee. Looking for genuine connections.", tags: ["Yoga","Hiking","Coffee","Travel"], kids: "No kids", height: "5'6\"", smoker: "Non-smoker", religion: "Buddhist", job: "Yoga Instructor", location: "Fairfield, CT", lat: 41.1412, lng: -73.2637, looking: ["Dating","Long-term"], program: "AA", gender: "Female", photos: [
     "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?w=800&h=1000&fit=crop"
   ] },
-  { name: "Jordan", age: 30, sober: "2 years sober", bio: "Early riser, board game nerd, and proud of every sober day. Looking for something real.", tags: ["Board games","Hiking","Recovery"], kids: "No kids", height: "5'11\"", smoker: "Non-smoker", job: "Teacher", location: "New York, NY", lat: 40.7128, lng: -74.006, looking: ["Dating","Long-term"], program: "AA", gender: "Male", photos: [
+  { name: "Jordan", age: 30, sober: "2 years sober", bio: "Early riser, board game nerd, and proud of every sober day. Looking for something real.", tags: ["Board games","Hiking","Recovery"], kids: "No kids", height: "5'11\"", smoker: "Non-smoker", religion: "Jewish", job: "Teacher", location: "New York, NY", lat: 40.7128, lng: -74.006, looking: ["Dating","Long-term"], program: "AA", gender: "Male", photos: [
     "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop",
     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&h=1000&fit=crop"
@@ -1555,6 +1562,7 @@ function completeSignup() {
     height: val('heightInput'),
     kids: val('kidsInput'),
     smoker: val('smokerInput'),
+    religion: val('religionInput'),
     stillUse: Array.from(document.querySelectorAll('.stilluse-cb:checked')).map(cb => cb.value).join(', '),
     sober: val('sobriety') || 'Sober curious',
     program: val('programInput'),
@@ -1670,7 +1678,7 @@ function openEditProfile() {
   const u = state.user || {};
   const set = (id, v) => { document.getElementById(id).value = v || ''; };
   set('editName', u.name); set('editAge', u.age); set('editGender', u.gender); { const L = splitLocation(u.location); set('editLocation', L.city); set('editState', L.state); }
-  set('editJob', u.job); set('editHeight', u.height); set('editKids', u.kids); set('editSmoker', u.smoker);
+  set('editJob', u.job); set('editHeight', u.height); set('editKids', u.kids); set('editSmoker', u.smoker); set('editReligion', u.religion);
   set('editSobriety', u.sober); set('editProgram', u.program); set('editBio', u.bio);
   document.querySelectorAll('.edit-intent').forEach(cb => { cb.checked = (u.looking || []).includes(cb.value); });
   editPhotos = (u.photos || []).slice();
@@ -1691,6 +1699,7 @@ function saveEditProfile() {
     height: val('editHeight'),
     kids: val('editKids'),
     smoker: val('editSmoker'),
+    religion: val('editReligion'),
     sober: val('editSobriety') || 'Sober curious',
     program: val('editProgram'),
     photos: editPhotos.slice(0, 6),
@@ -1728,7 +1737,7 @@ function updateProfileUI() {
   document.getElementById('soberProgress').style.width = (SOBER_PROGRESS[u.sober] || 50) + '%';
   document.getElementById('soberText').textContent = u.sober + '. Shared only with matches.';
   document.getElementById('userBio').textContent = u.bio || 'No bio yet — add one in Edit Profile.';
-  const rows = [['Gender', u.gender], ['Location', u.location], ['Work', u.job], ['Height', u.height], ['Kids', u.kids], ['Smoking', u.smoker], ['Program', u.program], ['Photos', (u.photos || []).length + ' / 6']];
+  const rows = [['Gender', u.gender], ['Location', u.location], ['Work', u.job], ['Height', u.height], ['Kids', u.kids], ['Smoking', u.smoker], ['Religion', u.religion], ['Program', u.program], ['Photos', (u.photos || []).length + ' / 6']];
   document.getElementById('userDetails').innerHTML = rows.map(([k, v]) => `<div><span class="muted">${k}</span><br><strong>${esc(v || '—')}</strong></div>`).join('') +
     `<div style="grid-column:1/-1;"><span class="muted">Intentions</span><br><strong>${esc((u.looking || []).join(', ') || '—')}</strong></div>`;
 }
@@ -1797,7 +1806,7 @@ function loadProfile() {
   document.getElementById('cardSober').textContent = p.sober;
   document.getElementById('bioText').textContent = p.bio;
   document.getElementById('tags').innerHTML = (p.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join('');
-  ['kids', 'height', 'smoker', 'job', 'location', 'program'].forEach(k => { document.getElementById(k).textContent = p[k] || '—'; });
+  ['kids', 'height', 'smoker', 'religion', 'job', 'location', 'program'].forEach(k => { document.getElementById(k).textContent = p[k] || '—'; });
   const distTxt = distanceText(distanceTo(p));
   document.getElementById('cardDist').textContent = distTxt ? '📍 ' + distTxt : '';
   if (distTxt) document.getElementById('location').textContent = (p.location ? p.location + ' · ' : '') + distTxt;
@@ -3017,7 +3026,7 @@ async function refreshCloudPanel() {
     const photoKb = (d.photos || []).map(p => Math.round(String(p).length / 1024) + ' KB').join(', ');
     box.innerHTML = '<table class="cloud-table">' +
       cloudRow('Name', d.name) + cloudRow('Age', d.age) + cloudRow('Gender', d.gender) + cloudRow('Location', d.location) +
-      cloudRow('Work', d.job) + cloudRow('Height', d.height) + cloudRow('Kids', d.kids) + cloudRow('Smoking', d.smoker) +
+      cloudRow('Work', d.job) + cloudRow('Height', d.height) + cloudRow('Kids', d.kids) + cloudRow('Smoking', d.smoker) + cloudRow('Religion', d.religion) +
       cloudRow('Sober', d.sober) + cloudRow('Program', d.program) + cloudRow('Looking for', (d.looking || []).join(', ')) +
       cloudRow('Bio', d.bio) + cloudRow('Photos', (d.photos || []).length + (photoKb ? ' (' + photoKb + ')' : '')) +
       cloudRow('Joined', ts(d.createdAt)) + cloudRow('Last saved', ts(d.updatedAt)) +
@@ -3151,7 +3160,7 @@ const db = getFirestore(app);
 if (EMU) { connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true }); connectFirestoreEmulator(db, '127.0.0.1', 8080); }
 setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-const PROFILE_FIELDS = ['name','age','gender','location','job','height','kids','smoker','stillUse','sober','program','bio','looking'];
+const PROFILE_FIELDS = ['name','age','gender','location','job','height','kids','smoker','religion','stillUse','sober','program','bio','looking'];
 const MAX_DOC_BYTES = 900 * 1024; // stay well under Firestore's 1 MiB doc limit
 
 // Shrink a data URL photo (photos are kept inside the Firestore doc for now).
