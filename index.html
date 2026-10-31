@@ -3364,10 +3364,19 @@ async function rtGetMember(uid) {
 //  - TURN_CREDENTIALS_URL: a credentials URL that returns an iceServers array, e.g. Metered Open Relay (free):
 //      'https://<appname>.metered.live/api/v1/turn/credentials?apiKey=<API key>'
 //    Fetched when a call starts (max ~4 s wait, cached 6 h). If it fails the call still goes ahead on STUN.
-//  - TURN_SERVERS: fixed credentials, e.g. ExpressTURN free:
-//      { urls: ['turn:free.expressturn.com:3478?transport=udp', 'turn:free.expressturn.com:3478?transport=tcp'], username: '…', credential: '…' }
+//  - TURN_SERVERS: fixed credentials. In use: Metered Open Relay free plan (app "cleandate", 20 GB/month).
+//    These are relay-only logins (they can't access the Metered account); the worst misuse is using up the monthly quota,
+//    after which calls fall back to STUN. To rotate: make a new credential in the Metered dashboard and replace both values.
+//    The free plan's logins work on standard.relay.metered.ca (global.relay.metered.ca rejects them).
 const STUN_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
-const TURN_SERVERS = [];
+const TURN_SERVERS = [
+  { urls: 'stun:stun.relay.metered.ca:80' },
+  {
+    urls: ['turn:standard.relay.metered.ca:80', 'turn:standard.relay.metered.ca:80?transport=tcp', 'turn:standard.relay.metered.ca:443', 'turns:standard.relay.metered.ca:443?transport=tcp'],
+    username: 'e1babc30c3b4801d90ce00f6',
+    credential: 'DE7HvPwWub7wS/Cu'
+  }
+];
 const TURN_CREDENTIALS_URL = '';
 // Local testing only: on localhost, ?turnurl=<url> stands in for TURN_CREDENTIALS_URL.
 const TURN_URL = (['localhost', '127.0.0.1'].includes(location.hostname) && new URLSearchParams(location.search).get('turnurl')) || TURN_CREDENTIALS_URL;
