@@ -3360,10 +3360,51 @@ async function rtGetMember(uid) {
 // matches/{mid}/calls/{callId} {caller, callee, kind, status, offer, answer, createdAt, acceptedAt, endedAt, endedBy, duration, restartOffer, restartAnswer}
 //   + callerCandidates / calleeCandidates subcollections (ICE).
 // STUN finds a direct path for most calls. TURN relays the ones that can't connect directly (strict mobile / office networks).
-// To add TURN later (e.g. Cloudflare Realtime TURN or Metered), put the server(s) in TURN_SERVERS, e.g.
-//   { urls: ['turn:turn.example.com:3478?transport=udp', 'turns:turn.example.com:443?transport=tcp'], username: '…', credential: '…' }
+// TURN relay: fill in ONE of these (both empty = STUN only, exactly as before).
+//  - TURN_CREDENTIALS_URL: a credentials URL that returns an iceServers array, e.g. Metered Open Relay (free):
+//      'https://<appname>.metered.live/api/v1/turn/credentials?apiKey=<API key>'
+//    Fetched when a call starts (max ~4 s wait, cached 6 h). If it fails the call still goes ahead on STUN.
+//  - TURN_SERVERS: fixed credentials, e.g. ExpressTURN free:
+//      { urls: ['turn:free.expressturn.com:3478?transport=udp', 'turn:free.expressturn.com:3478?transport=tcp'], username: '…', credential: '…' }
 const STUN_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
 const TURN_SERVERS = [];
+const TURN_CREDENTIALS_URL = '';
+// Local testing only: on localhost, ?turnurl=<url> stands in for TURN_CREDENTIALS_URL.
+const TURN_URL = (['localhost', '127.0.0.1'].includes(location.hostname) && new URLSearchParams(location.search).get('turnurl')) || TURN_CREDENTIALS_URL;
+const TURN_CACHE_MS = 6 * 3600 * 1000, TURN_WAIT_MS = 4000;
+let turnFetched = null, turnFetchedAt = 0, turnLoading = null;
+function cleanIceList(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter(s => s && (typeof s.urls === 'string' || (Array.isArray(s.urls) && s.urls.length)))
+    .map(s => {
+      const urls = (Array.isArray(s.urls) ? s.urls : [s.urls]).filter(u => typeof u === 'string' && /^(stuns?|turns?):/.test(u) && !/:53(\?|$)/.test(u));
+      const o = { urls };
+      if (typeof s.username === 'string') o.username = s.username;
+      if (typeof s.credential === 'string') o.credential = s.credential;
+      return o;
+    })
+    .filter(s => s.urls.length && (!s.urls.some(u => /^turns?:/.test(u)) || (s.username && s.credential)));
+}
+// Start fetching relay credentials; resolves when they're in, or after waitMs at most (never rejects).
+function loadTurn(waitMs) {
+  if (!TURN_URL || (turnFetched && Date.now() - turnFetchedAt < TURN_CACHE_MS)) return Promise.resolve();
+  if (!turnLoading) {
+    turnLoading = (async () => {
+      const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+      const t = setTimeout(() => ctrl && ctrl.abort(), 8000);
+      try {
+        const r = await fetch(TURN_URL, { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const body = await r.json();
+        const list = cleanIceList(Array.isArray(body) ? body : body && body.iceServers);
+        if (list.length) { turnFetched = list; turnFetchedAt = Date.now(); }
+      } catch (e) { console.warn('TURN relay not available, using direct connection only:', e && e.message); }
+      finally { clearTimeout(t); turnLoading = null; }
+    })();
+  }
+  return Promise.race([turnLoading, new Promise(r => setTimeout(r, waitMs == null ? TURN_WAIT_MS : waitMs))]);
+}
+function callIceServers() { return STUN_SERVERS.concat(cleanIceList(TURN_SERVERS), turnFetched || []); }
 const RING_MS = 30000;      // no answer after 30 s -> missed
 const CONNECT_MS = 20000;   // no media path after 20 s -> "Couldn't connect"
 const STALE_RING_MS = 45000;
@@ -3437,7 +3478,7 @@ function sendOwnCand(C, c) {
 }
 function clearCallTimers(C) { ['ringT', 'connT', 'failT'].forEach(k => { if (C[k]) { clearTimeout(C[k]); C[k] = null; } }); }
 function buildPc(C) {
-  const pc = new RTCPeerConnection({ iceServers: STUN_SERVERS.concat(TURN_SERVERS) });
+  const pc = new RTCPeerConnection({ iceServers: callIceServers() });
   C.pc = pc;
   C.remote = new MediaStream();
   C.local.getTracks().forEach(t => pc.addTrack(t, C.local));
@@ -3543,7 +3584,9 @@ async function callStart(mid, other, kind, name) {
   const C = newCall({ role: 'caller', mid, other, kind, name, me });
   CALL = C;
   try {
+    const turnReady = loadTurn();
     C.local = await getCallMedia(kind);
+    await turnReady;
     if (C.done) { C.local.getTracks().forEach(t => t.stop()); return; }
     callUI().local && callUI().local(C.local);
     buildPc(C);
@@ -3575,8 +3618,10 @@ async function callAccept() {
   const C = CALL;
   if (!C || C.role !== 'callee' || C.status !== 'ringing') return;
   C.status = 'accepting';
+  const turnReady = loadTurn();
   try {
     C.local = await getCallMedia(C.kind);
+    await turnReady;
   } catch (e) {
     finishCall(C, 'media', '');
     if (await callTransition(C.ref, ['ringing'], 'declined')) callLog(C.mid, 'Missed ' + kindLabel(C.kind) + ' call');
@@ -3643,6 +3688,7 @@ function onRinging(mid, ds) {
   const C = newCall({ role: 'callee', mid, other: d.caller, kind: d.kind === 'video' ? 'video' : 'voice', ref, id: ds.id, offer: d.offer, status: 'ringing', me });
   CALL = C;
   C.name = (callUI().incoming && callUI().incoming(mid, C.kind)) || '';
+  loadTurn(0); // get relay details ready while it rings
   C.unsubs.push(onSnapshot(ref, s => { if (s.exists()) onCallDoc(C, s.data()); }, () => {}));
   // safety net: if the caller vanished without updating the doc, stop ringing
   C.ringT = setTimeout(() => { C.ringT = null; if (!C.done && C.status === 'ringing') finishCall(C, 'missed', 'Missed call from ' + (C.name || 'your match')); }, RING_MS + 5000);
